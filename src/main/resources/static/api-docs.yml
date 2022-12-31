@@ -1,0 +1,663 @@
+openapi: 3.0.0
+info:
+  title: "authorization-registry-service"
+  version: 1.0.0
+  description: >-
+    Business management service.
+  license:
+    name: Apache-2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+paths:
+  /user:
+    post:
+      tags:
+        - user
+      description: Create a new user
+      operationId: create
+      parameters:
+        - in: header
+          name: User-Agent
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: App-Version
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_new_user_v1+json:
+            schema:
+              $ref: '#/components/schemas/UserV1'
+      responses:
+        201:
+          description: New user created with successfully
+          content:
+            application/vnd.kaiqkt_user_v1+json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponseV1'
+        400:
+          description: User sent an invalid field
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+    get:
+      tags:
+        - user
+      description: Get user based on user Id
+      operationId: findByAccessToken
+      security:
+        - CustomerAuth: [ ]
+      responses:
+        200:
+          description: User found successfully
+          content:
+            application/vnd.kaiqkt_user_v1+json:
+              schema:
+                $ref: '#/components/schemas/UserResponseV1'
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/{user_id}:
+    get:
+      tags:
+        - user
+      description: Get user based on user Id
+      operationId: findById
+      parameters:
+        - name: user_id
+          in: path
+          description: User id of a specific user
+          required: true
+          schema:
+            type: string
+      security:
+        - ServiceAuth: [ ]
+      responses:
+        200:
+          description: User found successfully
+          content:
+            application/vnd.kaiqkt_user_v1+json:
+              schema:
+                $ref: '#/components/schemas/UserResponseV1'
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/address/{address_id}:
+    put:
+      tags:
+        - user
+      description: Update the info of an address
+      operationId: updateAddress
+      parameters:
+        - name: address_id
+          in: path
+          description: Address id of a specific address
+          required: true
+          schema:
+            type: string
+      security:
+        - CustomerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_user_update_address_v1+json:
+            schema:
+              $ref: '#/components/schemas/UpdateAddressV1'
+      responses:
+        204:
+          description: Address updated successfully
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+    delete:
+      tags:
+        - user
+      description: Delete a specific address
+      operationId: deleteAddress
+      parameters:
+        - name: address_id
+          in: path
+          description: Address id of a specific address
+          required: true
+          schema:
+            type: string
+      security:
+        - CustomerAuth: [ ]
+      responses:
+        204:
+          description: Address deleted successfully
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/address:
+    post:
+      tags:
+        - user
+      description: Create new address
+      operationId: createAddress
+      security:
+        - CustomerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_user_new_address_v1+json:
+            schema:
+              $ref: '#/components/schemas/AddressV1'
+      responses:
+        204:
+          description: Address created successfully
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/update-password:
+    put:
+      tags:
+        - user
+      description: Update password based on the actual password
+      operationId: updatePassword
+      parameters:
+        - in: header
+          name: User-Agent
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: App-Version
+          schema:
+            type: string
+          required: true
+      security:
+        - CustomerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_user_update_password_v1+json:
+            schema:
+              $ref: '#/components/schemas/NewPasswordV1'
+      responses:
+        204:
+          description: Password updated successfully
+        401:
+          description: Actual password not match
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/redefine-password:
+    post:
+      tags:
+        - user
+      description: Send redefine password code
+      operationId: sendRedefinePasswordCode
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_user_send_redefine_password_v1+json:
+            schema:
+              $ref: '#/components/schemas/RedefinePasswordRequestV1'
+      responses:
+        204:
+          description: Successfully generated password reset code
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/redefine-password/code:
+    post:
+      tags:
+        - user
+      description: Redefine password based on code
+      operationId: redefinePassword
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_user_redefine_password_v1+json:
+            schema:
+              $ref: '#/components/schemas/RedefinePasswordV1'
+      responses:
+        204:
+          description: Password updated successfully
+        401:
+          description: Actual password not match
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/redefine-password/{code}:
+    get:
+      tags:
+        - user
+      description: Validate the redefine password code code
+      operationId: validateRedefinePasswordCode
+      parameters:
+        - name: code
+          in: path
+          description: Code of a specific password redefine request
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Redefine token is valid
+        401:
+          description: Redefine token not exist
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /user/phone:
+    put:
+      tags:
+        - user
+      description: Update phone based on access token
+      operationId: updatePhone
+      security:
+        - CustomerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_user_phone_v1+json:
+            schema:
+              $ref: '#/components/schemas/PhoneV1'
+      responses:
+        204:
+          description: User phone updated successfully
+        401:
+          description: Actual password not match
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /auth/login:
+    post:
+      tags:
+        - authentication
+      description: Create new login for existent user
+      operationId: authenticate
+      parameters:
+        - in: header
+          name: User-Agent
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: App-Version
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/vnd.kaiqkt_auth_login_v1+json:
+            schema:
+              $ref: '#/components/schemas/LoginV1'
+      responses:
+        200:
+          description: User logged successfully
+          content:
+            application/vnd.kaiqkt_auth_login_v1+json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponseV1'
+        404:
+          description: User not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+        401:
+          description: Password not match
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /auth/logout:
+    delete:
+      tags:
+        - logout
+      description: Revoke the session based on customer token
+      operationId: logout
+      security:
+      - CustomerAuth: [ ]
+      responses:
+        204:
+          description: User logged out successfully
+  /auth/logout/{session_id}:
+    delete:
+      tags:
+        - logout
+      description: Revoke the session based on specific session id
+      operationId: logoutSessionById
+      parameters:
+        - name: session_id
+          in: path
+          description: session_id of a specific session
+          required: true
+          schema:
+            type: string
+      security:
+        - CustomerAuth: [ ]
+      responses:
+        204:
+          description: User logged out successfully
+  /auth/validate:
+    post:
+      tags:
+        - validate
+      description: Validate Authentication
+      operationId: authenticationValidate
+      security:
+        - CustomerAuth: [ ]
+      responses:
+        200:
+          description: Authentication validated and refresh successfully
+          content:
+            application/vnd.kaiqkt_auth_validate_v1+json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponseV1'
+        204:
+          description: Authentication validated successfully
+        401:
+          description: The session is revoked or expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
+  /session:
+    get:
+      tags:
+        - session
+      description: Get sessions by user id
+      operationId: findAllByUserId
+      security:
+        - CustomerAuth: [ ]
+      responses:
+        200:
+          description: Sessions found successfully
+          content:
+            application/vnd.kaiqkt_session_v1+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SessionResponseV1'
+
+components:
+  schemas:
+    LoginV1:
+      type: object
+      properties:
+        email:
+          type: string
+          pattern: \S+@\S+\.\S+
+        password:
+          type: string
+          minLength: 1
+      required:
+        - email
+        - password
+
+    UserV1:
+      type: object
+      properties:
+        full_name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        email:
+          type: string
+          pattern: \S+@\S+\.\S+
+        birth_date:
+          type: string
+          minLength: 8
+          maxLength: 10
+        genre:
+          $ref: '#/components/schemas/GenreV1'
+        password:
+          type: string
+          pattern: ^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$
+        phone:
+          $ref: '#/components/schemas/PhoneV1'
+        address:
+          $ref: '#/components/schemas/AddressV1'
+      required:
+        - full_name
+        - email
+        - password
+        - phone
+        - birth_date
+        - genre
+
+    PhoneV1:
+      type: object
+      properties:
+        country_code:
+          type: string
+          minLength: 2
+          maxLength: 3
+        area_code:
+          type: string
+          minLength: 2
+          maxLength: 5
+        number:
+          type: string
+          minLength: 8
+          maxLength: 10
+      required:
+        - country_code
+        - area_code
+        - number
+
+    AddressV1:
+      type: object
+      properties:
+        id:
+          type: string
+        zip_code:
+          type: string
+          minLength: 8
+          maxLength: 9
+        street:
+          type: string
+          minLength: 6
+          maxLength: 60
+        complement:
+          type: string
+          maxLength: 60
+        number:
+          type: string
+          maxLength: 10
+        district:
+          type: string
+          maxLength: 60
+        city:
+          type: string
+          maxLength: 60
+        state:
+          type: string
+          maxLength: 60
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+      required:
+        - zip_code
+        - street
+        - number
+        - district
+        - city
+        - state
+        - country
+
+    UpdateAddressV1:
+      type: object
+      properties:
+        zip_code:
+          type: string
+        street:
+          type: string
+        complement:
+          type: string
+        number:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+
+    GenreV1:
+      type: string
+      enum: [ "MEN","WOMEN","OTHER" ]
+
+    NewPasswordV1:
+      type: object
+      properties:
+        actual_password:
+          type: string
+          minLength: 1
+        new_password:
+          type: string
+          pattern: ^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$
+      required:
+        - actual_password
+        - new_password
+
+    RedefinePasswordV1:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+        new_password:
+          type: string
+          pattern: ^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$
+      required:
+        - code
+        - new_password
+
+    RedefinePasswordRequestV1:
+      type: object
+      properties:
+        email:
+          type: string
+          minLength: 1
+      required:
+        - email
+
+    UserResponseV1:
+      type: object
+      properties:
+        id:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+        phone:
+          $ref: '#/components/schemas/PhoneV1'
+        birth_date:
+          type: string
+        genre:
+          $ref: '#/components/schemas/GenreV1'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddressV1'
+      required:
+        - full_name
+        - email
+        - password
+        - phone
+        - birth_date
+        - genre
+        - id
+
+    AuthenticationResponseV1:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserResponseV1'
+      required:
+        - access_token
+        - refresh_token
+        - user
+
+    SessionResponseV1:
+      type: object
+      properties:
+        device:
+          type: string
+        session_id:
+          type: string
+        this_device:
+          type: boolean
+      required:
+        - device
+        - session_id
+        - this_device
+
+    ErrorResponseV1:
+      type: object
+      properties:
+        details:
+          type: object
+
+  securitySchemes:
+    CustomerAuth:
+      type: http
+      scheme: bearer
+    ServiceAuth:
+      type: apiKey
+      name: Authorization
+      in: header

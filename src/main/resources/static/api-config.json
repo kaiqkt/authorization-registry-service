@@ -1,0 +1,10 @@
+{
+  "apiPackage": "com.kaiqkt.services.authregistryservice.generated.application.controllers",
+  "modelPackage": "com.kaiqkt.services.authregistryservice.generated.application.dto",
+  "dateLibrary": "java8",
+  "additionalProperties": {
+    "hideGenerationTimestamp": true,
+    "useBeanValidation": true,
+    "interfaceOnly": true
+  }
+}

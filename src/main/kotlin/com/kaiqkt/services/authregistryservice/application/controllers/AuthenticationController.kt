@@ -1,0 +1,51 @@
+package com.kaiqkt.services.authregistryservice.application.controllers
+
+import com.kaiqkt.commons.security.auth.AUTHORIZE_USER
+import com.kaiqkt.commons.security.auth.getRefreshToken
+import com.kaiqkt.commons.security.auth.getSessionId
+import com.kaiqkt.commons.security.auth.getUserId
+import com.kaiqkt.services.authregistryservice.application.dto.toDomain
+import com.kaiqkt.services.authregistryservice.application.dto.toV1
+import com.kaiqkt.services.authregistryservice.domain.entities.Device
+import com.kaiqkt.services.authregistryservice.domain.services.AuthenticationService
+import com.kaiqkt.services.authregistryservice.generated.application.controllers.AuthApi
+import com.kaiqkt.services.authregistryservice.generated.application.dto.AuthenticationResponseV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.LoginV1
+import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.RestController
+
+
+@RestController
+class AuthenticationController(private val authenticationService: AuthenticationService) : AuthApi {
+
+    @PreAuthorize(AUTHORIZE_USER)
+    override fun authenticationValidate(): ResponseEntity<AuthenticationResponseV1> {
+        return authenticationService.authenticationValidate(getUserId(), getSessionId(), getRefreshToken())
+            ?.let {
+                ResponseEntity.ok(it.toV1())
+            } ?: return ResponseEntity.noContent().build()
+    }
+
+    @PreAuthorize(AUTHORIZE_USER)
+    override fun logout(): ResponseEntity<Unit> {
+        authenticationService.logout(getUserId(), getSessionId())
+            .also { return ResponseEntity.noContent().build() }
+    }
+
+    @PreAuthorize(AUTHORIZE_USER)
+    override fun logoutSessionById(sessionId: String): ResponseEntity<Unit> {
+        authenticationService.logout(getUserId(), sessionId)
+            .also { return ResponseEntity.noContent().build() }
+    }
+
+    override fun authenticate(
+        userAgent: String,
+        appVersion: String,
+        loginV1: LoginV1
+    ): ResponseEntity<AuthenticationResponseV1> {
+        authenticationService.authenticate(Device(userAgent, appVersion), loginV1.toDomain())
+            .toV1()
+            .also { return ResponseEntity.ok(it) }
+    }
+}

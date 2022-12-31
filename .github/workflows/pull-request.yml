@@ -1,0 +1,44 @@
+on: [pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: test-pr
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Generate open api spec
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_API_KEY: ${{ secrets.GPR_API_KEY }}
+        run: ./gradlew openApiGenerate
+      - name: Run unit and component tests
+        run: ./gradlew test
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    name: build-pr
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Generate open api spec
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_API_KEY: ${{ secrets.GPR_API_KEY }}
+        run: ./gradlew openApiGenerate
+      - name: Run build with Gradle
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_API_KEY: ${{ secrets.GPR_API_KEY }}
+        run: ./gradlew build

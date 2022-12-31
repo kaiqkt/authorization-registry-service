@@ -1,0 +1,28 @@
+version: '2'
+services:
+  auth-mongodb:
+    container_name: auth-mongodb
+    image: mongo:3
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: "auth-service"
+      MONGO_INITDB_ROOT_USERNAME: "auth-service"
+      MONGO_INITDB_ROOT_PASSWORD: "auth-service"
+    volumes:
+      - auth-mongo:/data/db
+  auth-redis:
+    container_name: auth-redis
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning --requirepass 'auth-service'
+    volumes:
+      - auth-redis:/data/cache
+volumes:
+  auth-mongo:
+    driver: local
+  auth-redis:
+    driver: local

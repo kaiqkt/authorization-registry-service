@@ -1,0 +1,44 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: auth-registry-service
+  data:
+    mongodb:
+      authentication-database: admin
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
+      database: ${MONGO_DATABASE}
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD}
+
+service-shared-secret: ${SERVICE_SECRET}
+customer-auth-signing-secret: ${CUSTOMER_SECRET}
+ignore-post-paths: /user, /user/redefine-password/code, /user/redefine-password,  /auth/login
+ignore-put-paths: /user/change-password
+ignore-get-paths: /user/redefine-password/*
+
+session-expiration: ${SESSION_EXPIRATION}
+redefine-password-code-expiration: ${REDEFINE_PASSWORD_CODE_EXPIRATION}
+customer-auth-expiration-token: ${CUSTOMER_TOKEN_EXPIRATION}
+api-docs-location: /api-docs.yml
+
+communication:
+  url: ${COMMUNICATION_URL}
+  service-shared: ${COMMUNICATION_SERVICE_SHARED}
+  email:
+    location-template: ${COMMUNICATION_LOCATION_TEMPLATE}
+    redefine-password-template: ${PASSWORD_REDEFINE_TEMPLATE}
+    password-updated-template: ${PASSWORD_UPDATED_TEMPLATE}
+    welcome-template: ${WELCOME_TEMPLATE}
+    new-access-template: ${NEW_ACCESS_TEMPLATE}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    url: /api-docs.yml
