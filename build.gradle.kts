@@ -79,8 +79,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     //commons
-    implementation("com.kaiqkt.commons:commons-security:1.0.3")
+    implementation("com.kaiqkt.commons:commons-security:1.0.1")
     implementation("com.kaiqkt.commons:commons-health:1.0.0")
+    implementation("com.kaiqkt.commons:commons-crypto:1.0.0")
 
     //swagger
     implementation("org.springdoc:springdoc-openapi-ui:1.6.14")
@@ -101,9 +102,6 @@ dependencies {
 
     //fuel
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
-
-    //crypto
-    implementation("com.kaiqkt.commons:commons-crypto:1.10.0")
 
     //utils
     implementation("io.azam.ulidj:ulidj:1.0.1")
