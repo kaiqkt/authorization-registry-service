@@ -11,15 +11,12 @@ object CustomAuthenticationSampler {
         authorities.add(SimpleGrantedAuthority(ROLE_USER))
         id = "01GFPPTXKZ8ZJRG8MF701M0W99"
         sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
-        refreshToken = "031231amdsfakKKAy"
     }
 
     fun sampleExpired() = CustomAuthentication(ULID.random()).apply {
         isAuthenticated = true
-        isExpired = true
         authorities.add(SimpleGrantedAuthority(ROLE_USER))
         id = "01GFPPTXKZ8ZJRG8MF701M0W99"
         sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
-        refreshToken = "031231amdsfakKKAy"
     }
 }
