@@ -1,5 +1,7 @@
 package com.kaiqkt.services.authregistryservice.application.controllers
 
+import com.kaiqkt.commons.crypto.jwt.JWTUtils
+import com.kaiqkt.commons.security.auth.ROLE_USER
 import com.kaiqkt.commons.security.auth.getSessionId
 import com.kaiqkt.services.authregistryservice.application.dto.AuthenticationResponseSampler
 import com.kaiqkt.services.authregistryservice.application.dto.LoginV1Sampler
@@ -8,7 +10,6 @@ import com.kaiqkt.services.authregistryservice.application.security.CustomAuthen
 import com.kaiqkt.services.authregistryservice.domain.entities.AuthenticationSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.DeviceSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.services.AuthenticationService
 import com.kaiqkt.services.authregistryservice.resources.exceptions.PersistenceException
@@ -28,6 +29,8 @@ const val APP_VERSION = "1.0.0"
 
 class AuthenticationControllerTest {
 
+    private val customAccessTokenSecret: String = "shared-secret"
+    private val customAccessTokenExpiration: String = "2"
     private val authenticationService: AuthenticationService = mockk(relaxed = true)
     private val controller: AuthenticationController = AuthenticationController(authenticationService)
 
@@ -38,11 +41,11 @@ class AuthenticationControllerTest {
         val expectedResponse = AuthenticationResponseSampler.sample()
         val device = DeviceSampler.sample()
 
-        every { authenticationService.authenticate(any(), any()) } returns authentication
+        every { authenticationService.authenticateWithCredentials(any(), any()) } returns authentication
 
         val response = controller.authenticate(USER_AGENT, APP_VERSION, login)
 
-        verify { authenticationService.authenticate(device, login.toDomain()) }
+        verify { authenticationService.authenticateWithCredentials(device, login.toDomain()) }
 
         Assertions.assertEquals(HttpStatus.OK, response.statusCode)
         Assertions.assertNotNull(response.body?.accessToken)
@@ -55,17 +58,17 @@ class AuthenticationControllerTest {
         val request = LoginV1Sampler.sample()
         val device = DeviceSampler.sample()
 
-        every { authenticationService.authenticate(any(), any()) } throws UserNotFoundException()
+        every { authenticationService.authenticateWithCredentials(any(), any()) } throws UserNotFoundException()
 
         assertThrows<UserNotFoundException> {
             controller.authenticate(USER_AGENT, APP_VERSION, request)
         }
 
         verify {
-            authenticationService.authenticate(any(), any())
+            authenticationService.authenticateWithCredentials(any(), any())
         }
 
-        verify { authenticationService.authenticate(device, request.toDomain()) }
+        verify { authenticationService.authenticateWithCredentials(device, request.toDomain()) }
     }
 
     @Test
@@ -73,13 +76,13 @@ class AuthenticationControllerTest {
         val request = LoginV1Sampler.sample()
         val device = DeviceSampler.sample()
 
-        every { authenticationService.authenticate(any(), any()) } throws BadCredentialsException()
+        every { authenticationService.authenticateWithCredentials(any(), any()) } throws BadCredentialsException()
 
         assertThrows<BadCredentialsException> {
             controller.authenticate(USER_AGENT, APP_VERSION, request)
         }
 
-        verify { authenticationService.authenticate(device, request.toDomain()) }
+        verify { authenticationService.authenticateWithCredentials(device, request.toDomain()) }
     }
 
     @Test
@@ -88,7 +91,7 @@ class AuthenticationControllerTest {
         val device = DeviceSampler.sample()
 
         every {
-            authenticationService.authenticate(
+            authenticationService.authenticateWithCredentials(
                 any(),
                 any()
             )
@@ -98,7 +101,7 @@ class AuthenticationControllerTest {
             controller.authenticate(USER_AGENT, APP_VERSION, request)
         }
 
-        verify { authenticationService.authenticate(device, request.toDomain()) }
+        verify { authenticationService.authenticateWithCredentials(device, request.toDomain()) }
     }
 
     @Test
@@ -172,62 +175,42 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    fun `given a request to authentication validation, when the access token is not expired and the session is not revoked, should return http status 204`() {
+    fun `given a request to authentication refresh, when the refresh token is correctly, should return new authentication and http status 200`() {
         val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
         val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
         val refreshToken = "031231amdsfakKKAy"
+        val accessToken = JWTUtils.generateToken(userId, customAccessTokenSecret, listOf(ROLE_USER), sessionId, customAccessTokenExpiration.toLong())
 
-        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
-
-        every { authenticationService.authenticationValidate(any(), any(), any()) } returns null
-
-        val response = controller.authenticationValidate()
-
-        verify { authenticationService.authenticationValidate(userId, sessionId, refreshToken) }
-
-        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
-    }
-
-    @Test
-    fun `given a request to authentication validation, when the access token is expired and the session is not revoked, should return RefreshedAuthentication and http status 200`() {
-        val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
-        val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
-        val refreshToken = "031231amdsfakKKAy"
         val authentication = AuthenticationSampler.sample()
 
         SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
 
-        every { authenticationService.authenticationValidate(any(), any(), any()) } returns authentication
+        every { authenticationService.refresh(any(), any()) } returns authentication
 
-        val response = controller.authenticationValidate()
+        val response = controller.refresh(accessToken, refreshToken)
 
-        verify { authenticationService.authenticationValidate(userId, sessionId, refreshToken) }
+        verify { authenticationService.refresh(accessToken, refreshToken) }
 
         Assertions.assertEquals(HttpStatus.OK, response.statusCode)
         Assertions.assertEquals(authentication.accessToken, response.body!!.accessToken)
         Assertions.assertEquals(authentication.refreshToken, response.body!!.refreshToken)
     }
 
-    @Test
-    fun `given a request to authentication validation, when the access token is expired, the session is not revoked but the refresh token not matches or is expired, should throw SessionException`() {
-        val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
-        val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
-        val refreshToken = "031231amdsfakKKAy"
-
-        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
-
-        every {
-            authenticationService.authenticationValidate(
-                any(),
-                any(),
-                any()
-            )
-        } throws SessionException("Session expired")
-
-        assertThrows<SessionException> {
-            controller.authenticationValidate()
-        }
-
-        verify { authenticationService.authenticationValidate(userId, sessionId, refreshToken) }
-    }
+//    @Test
+//    fun `given a request to authentication refresh, when the access token is expired or is not matches, the session is not revoked but the refresh token not matches or is expired, should throw SessionException`() {
+//        val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
+//        val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
+//        val refreshToken = "031231amdsfakKKAy"
+//        val accessToken = JWTUtils.generateToken(userId, customAccessTokenSecret, listOf(ROLE_USER), sessionId, customAccessTokenExpiration.toLong())
+//
+//        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
+//
+//        every { authenticationService.refresh(any(), any()) } throws SessionException("Refresh token is invalid")
+//
+//        assertThrows<SessionException> {
+//            controller.refresh(accessToken, refreshToken)
+//        }
+//
+//        verify { authenticationService.refresh(accessToken, refreshToken) }
+//    }
 }

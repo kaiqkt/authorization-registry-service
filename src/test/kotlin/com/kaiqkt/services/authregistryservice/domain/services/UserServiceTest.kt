@@ -53,7 +53,7 @@ class UserServiceTest {
         every { userRepository.save(any()) } returns user
         every { emailService.sendWelcomeEmail(any()) } just runs
         every {
-            authenticationService.generateAuthenticationTokens(
+            authenticationService.authenticate(
                 any(),
                 any()
             )
@@ -64,7 +64,7 @@ class UserServiceTest {
         verify { validationService.validate(user) }
         verify { userRepository.save(user) }
         verify { emailService.sendWelcomeEmail(user) }
-        verify { authenticationService.generateAuthenticationTokens(user, device) }
+        verify { authenticationService.authenticate(user, device) }
     }
 
     @Test
@@ -89,7 +89,7 @@ class UserServiceTest {
         every { userRepository.save(any()) } returns user
         every { emailService.sendWelcomeEmail(any()) } just runs
         every {
-            authenticationService.generateAuthenticationTokens(
+            authenticationService.authenticate(
                 any(),
                 any()
             )

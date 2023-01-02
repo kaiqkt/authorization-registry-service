@@ -384,25 +384,34 @@ paths:
       responses:
         204:
           description: User logged out successfully
-  /auth/validate:
+  /auth/refresh:
     post:
       tags:
-        - validate
-      description: Validate Authentication
-      operationId: authenticationValidate
-      security:
-        - CustomerAuth: [ ]
+        - refresh
+      description: Refresh the authentication
+      operationId: refresh
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+        - in: header
+          name: Refresh-Token
+          schema:
+            type: string
+          required: true
       responses:
         200:
-          description: Authentication validated and refresh successfully
+          description: Authentication refreshed
           content:
-            application/vnd.kaiqkt_auth_validate_v1+json:
+            application/vnd.kaiqkt_auth_refresh_v1+json:
               schema:
                 $ref: '#/components/schemas/AuthenticationResponseV1'
         204:
-          description: Authentication validated successfully
+          description: Authentication refreshed successfully
         401:
-          description: The session is revoked or expired
+          description: Refresh token is invalid or expired
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:

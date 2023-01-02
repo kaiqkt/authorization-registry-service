@@ -4,20 +4,18 @@ import com.kaiqkt.commons.crypto.encrypt.EncryptUtils
 import com.kaiqkt.commons.crypto.jwt.JWTUtils
 import com.kaiqkt.commons.crypto.random.generateRandomString
 import com.kaiqkt.commons.security.auth.ROLE_USER
-import com.kaiqkt.commons.security.auth.isExpired
 import com.kaiqkt.services.authregistryservice.domain.entities.Authentication
 import com.kaiqkt.services.authregistryservice.domain.entities.Device
 import com.kaiqkt.services.authregistryservice.domain.entities.Login
 import com.kaiqkt.services.authregistryservice.domain.entities.User
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
 import kotlin.jvm.optionals.getOrNull
 
 @Service
@@ -31,61 +29,51 @@ class AuthenticationService(
     private val expirationAuthToken: String
 ) {
 
-    fun authenticate(device: Device, login: Login): Authentication {
+    fun authenticateWithCredentials(device: Device, login: Login): Authentication {
         logger.info("Authenticating user ${login.email}")
 
         val user = userRepository.findByEmail(login.email) ?: throw UserNotFoundException()
 
         if (EncryptUtils.validatePassword(login.password, user.password)) {
-            logger.info("User $user.id authenticated with successfully")
 
-            return generateAuthenticationTokens(user, device).also {
+            return authenticate(user, device).also {
                 emailService.sendNewAccessEmail(user, device)
             }
         }
         throw BadCredentialsException()
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    fun authenticationValidate(
-        userId: String,
-        sessionId: String,
-        refreshToken: String
-    ): Authentication? {
-        logger.info("Attempting to validate authentication for session $sessionId of user $userId")
-
-        val session =
-            sessionService.findByIdAndUserId(sessionId, userId)
-        val user = userRepository.findById(userId).getOrNull() ?: throw UserNotFoundException()
-
-        return when {
-            isExpired() -> {
-                if (session.refreshToken == refreshToken) {
-                    return generateAuthenticationTokens(
-                        user,
-                        session.device,
-                        sessionId
-                    )
-                }
-                throw SessionException("Refresh token not matches")
-            }
-
-            else -> {
-                logger.info("Session $sessionId for user $userId is authenticate ,valid and not revoked")
-                null
-            }
-        }
-    }
-
-    fun generateAuthenticationTokens(user: User, device: Device, sessionId: String? = null): Authentication {
+    fun authenticate(user: User, device: Device? = null, sessionId: String? = null): Authentication {
         val refreshToken = generateRandomString()
-        val session =
-            sessionService.save(sessionId = sessionId, userId = user.id, device = device, refreshToken = refreshToken)
+        val session = if (sessionId.isNullOrBlank()) {
+            sessionService.save(userId = user.id, device = device!!, refreshToken = refreshToken)
+        } else {
+            sessionService.update(sessionId, user.id, refreshToken)
+        }
+
         val token = JWTUtils.generateToken(user.id, secret, listOf(ROLE_USER), session.id, expirationAuthToken.toLong())
 
-        logger.info("Authentication successfully generated for session ${session.id} of user ${user.id}")
+        logger.info("User ${user.id} authenticated successfully for the session ${session.id}")
 
         return Authentication(token, refreshToken, user)
+    }
+
+
+    @OptIn(ExperimentalStdlibApi::class)
+    fun refresh(accessToken: String, refreshToken: String): Authentication {
+        val claims = JWTUtils.getClaims(accessToken, secret)
+        val userId = claims.id
+        val sessionId = claims.sessionId
+
+        logger.info("Refreshing the authentication for session $sessionId of user $userId")
+
+        val session = sessionService.findByIdAndUserId(sessionId, userId)
+        val user = userRepository.findById(userId).getOrNull() ?: throw UserNotFoundException()
+
+        if (session.refreshToken == refreshToken) {
+            return authenticate(user = user, sessionId = sessionId)
+        }
+        throw BadRefreshTokenException("Refresh token is invalid")
     }
 
     fun logout(userId: String, sessionId: String) {

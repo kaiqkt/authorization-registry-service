@@ -36,8 +36,7 @@ class UserService(
         userRepository.save(user).run {
             logger.info("User ${user.id} created successfully")
             emailService.sendWelcomeEmail(this)
-        }.also {
-            return authenticationService.generateAuthenticationTokens(user, device)
+            return authenticationService.authenticate(this, device)
         }
     }
 

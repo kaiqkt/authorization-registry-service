@@ -5,14 +5,13 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.AddressNotFound
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.DomainException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefinePasswordException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
 import io.azam.ulidj.ULID
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpHeaders
@@ -80,9 +79,9 @@ class ErrorHandlerTest {
     fun `given an SessionException when handling, should return HTTP status 401`() {
         val errorHandler = ErrorHandler()
         val error = ErrorSampler.sampleSessionError()
-        val exception = SessionException("Session revoked")
+        val exception = BadRefreshTokenException("Session revoked")
 
-        val response = errorHandler.handleSessionException(exception, webRequest)
+        val response = errorHandler.handleBadRefreshTokenException(exception, webRequest)
 
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         Assertions.assertEquals(error.details, response.body?.details)

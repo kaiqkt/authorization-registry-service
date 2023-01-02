@@ -1,12 +1,13 @@
 package com.kaiqkt.services.authregistryservice.domain.services
 
-import com.kaiqkt.services.authregistryservice.application.security.CustomAuthenticationSampler
+import com.kaiqkt.commons.crypto.jwt.JWTUtils
+import com.kaiqkt.commons.security.auth.ROLE_USER
 import com.kaiqkt.services.authregistryservice.domain.entities.DeviceSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.LoginSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.SessionSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepository
@@ -19,7 +20,6 @@ import io.mockk.verify
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.security.core.context.SecurityContextHolder
 import java.util.*
 
 class AuthenticationServiceTest {
@@ -27,7 +27,7 @@ class AuthenticationServiceTest {
     private val sessionService: SessionService = mockk(relaxed = true)
     private val emailService: EmailService = mockk(relaxed = true)
     private val customAccessTokenSecret: String = "shared-secret"
-    private val customAccessTokenExpiration: String = "43200000"
+    private val customAccessTokenExpiration: String = "2"
     private val authenticationService: AuthenticationService =
         AuthenticationService(userRepository, sessionService, emailService, customAccessTokenSecret, customAccessTokenExpiration)
 
@@ -39,14 +39,14 @@ class AuthenticationServiceTest {
         val device = DeviceSampler.sample()
 
         every { userRepository.findByEmail(any()) } returns user
-        every { sessionService.save(sessionId = any(), any(), any(), any()) } returns session
+        every { sessionService.save(any(), any(), any()) } returns session
         every { emailService.sendNewAccessEmail(any(), any()) } just runs
 
-        authenticationService.authenticate(device, login)
+        authenticationService.authenticateWithCredentials(device, login)
 
         verify { userRepository.findByEmail(login.email) }
         verify { emailService.sendNewAccessEmail(user, device) }
-        verify { sessionService.save(null, user.id, device, any()) }
+        verify { sessionService.save(user.id, device, any()) }
     }
 
     @Test
@@ -57,7 +57,7 @@ class AuthenticationServiceTest {
         every { userRepository.findByEmail(any()) } returns null
 
         assertThrows<UserNotFoundException> {
-            authenticationService.authenticate(device, login)
+            authenticationService.authenticateWithCredentials(device, login)
         }
 
         verify { userRepository.findByEmail(login.email) }
@@ -72,7 +72,7 @@ class AuthenticationServiceTest {
         every { userRepository.findByEmail(any()) } returns user
 
         assertThrows<BadCredentialsException> {
-            authenticationService.authenticate(device, login)
+            authenticationService.authenticateWithCredentials(device, login)
         }
 
         verify { userRepository.findByEmail(login.email) }
@@ -84,9 +84,9 @@ class AuthenticationServiceTest {
         val session = SessionSampler.sample()
         val device = DeviceSampler.sample()
 
-        every { sessionService.save(any(), any(), any(), any()) } returns session
+        every { sessionService.save(any(), any(), any()) } returns session
 
-        val authentication = authenticationService.generateAuthenticationTokens(user, device)
+        val authentication = authenticationService.authenticate(user, device)
 
         Assertions.assertEquals(user, authentication.user)
     }
@@ -96,13 +96,13 @@ class AuthenticationServiceTest {
         val user = UserSampler.sample()
         val device = DeviceSampler.sample()
 
-        every { sessionService.save(any(), any(), any(), any()) } throws PersistenceException("Unable to persist")
+        every { sessionService.save(any(), any(), any()) } throws PersistenceException("Unable to persist")
 
         assertThrows<PersistenceException> {
-            authenticationService.generateAuthenticationTokens(user, device)
+            authenticationService.authenticate(user, device)
         }
 
-        verify { sessionService.save(any(), any(), any(), any()) }
+        verify { sessionService.save(any(), any(), any()) }
     }
 
     @Test
@@ -132,97 +132,77 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    fun `given a session to validate, when the access token is not expired and the session is not revoked, should return null`() {
+    fun `given a authentication to refresh, when the refresh token is not expired or revoked, should return authentication`() {
         val user = UserSampler.sample()
         val session = SessionSampler.sample()
         val refreshToken = "031231amdsfakKKAy"
-
-        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
+        val accessToken = JWTUtils.generateToken(user.id, customAccessTokenSecret, listOf(ROLE_USER), session.id, customAccessTokenExpiration.toLong())
 
         every { userRepository.findById(any()) } returns Optional.of(user)
         every { sessionService.findByIdAndUserId(any(), any()) } returns session
+        every { sessionService.update(any(), any(), any()) } returns session
 
-        val response = authenticationService.authenticationValidate(user.id, session.id, refreshToken)
+        authenticationService.refresh(accessToken, refreshToken)
 
         verify { sessionService.findByIdAndUserId(session.id, user.id) }
         verify { userRepository.findById(user.id) }
-
-        Assertions.assertNull(response)
+        verify { sessionService.update(session.id, user.id, any()) }
     }
 
     @Test
-    fun `given a session to validate, when the access token is expired, the session is not revoked and the refresh token matches, should refresh the authentication tokens`() {
+    fun `given a authentication to refresh, when not found the user, should throw UserNotFoundException`() {
         val user = UserSampler.sample()
         val session = SessionSampler.sample()
         val refreshToken = "031231amdsfakKKAy"
-
-        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sampleExpired()
-
-        every { userRepository.findById(any()) } returns Optional.of(user)
-        every { sessionService.findByIdAndUserId(any(), any()) } returns session
-
-        val response = authenticationService.authenticationValidate(user.id, session.id, refreshToken)
-
-        verify { sessionService.findByIdAndUserId(session.id, user.id) }
-        verify { sessionService.save(any(), any(), any(), any()) }
-        verify { userRepository.findById(user.id) }
-
-        Assertions.assertNotNull(response)
-    }
-
-    @Test
-    fun `given a session to validate, when not found the user, should throw UserNotFoundException`() {
-        val user = UserSampler.sample()
-        val session = SessionSampler.sample()
-        val refreshToken = "031231amdsfakKKAy"
-
-        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sampleExpired()
+        val accessToken = JWTUtils.generateToken(user.id, customAccessTokenSecret, listOf(ROLE_USER), session.id, customAccessTokenExpiration.toLong())
 
         every { userRepository.findById(any()) } returns Optional.empty()
         every { sessionService.findByIdAndUserId(any(), any()) } returns session
+        every { sessionService.update(any(), any(), any()) } returns session
 
         assertThrows<UserNotFoundException> {
-            authenticationService.authenticationValidate(user.id, session.id, refreshToken)
+            authenticationService.refresh(accessToken, refreshToken)
         }
 
         verify { sessionService.findByIdAndUserId(session.id, user.id) }
-        verify(exactly = 0) { sessionService.save(any(), any(), any(), any()) }
+        verify(exactly = 0) { sessionService.update(session.id, user.id, any()) }
         verify { userRepository.findById(user.id) }
     }
 
     @Test
-    fun `given a session to validate, when the session revoked, should throw SessionNotFoundException`() {
+    fun `given a authentication to refresh, when the session revoked, should throw SessionNotFoundException`() {
         val user = UserSampler.sample()
         val session = SessionSampler.sample()
         val refreshToken = "031231amdsfakKKAy"
-
-        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
+        val accessToken = JWTUtils.generateToken(user.id, customAccessTokenSecret, listOf(ROLE_USER), session.id, customAccessTokenExpiration.toLong())
 
         every { sessionService.findByIdAndUserId(any(), any()) } throws SessionNotFoundException(session.id, user.id)
 
         assertThrows<SessionNotFoundException> {
-            authenticationService.authenticationValidate(user.id, session.id, refreshToken)
+            authenticationService.refresh(accessToken, refreshToken)
         }
 
         verify { sessionService.findByIdAndUserId(session.id, user.id) }
+        verify(exactly = 0) { sessionService.update(session.id, user.id, any()) }
+        verify(exactly = 0) { userRepository.findById(user.id) }
     }
 
     @Test
-    fun `given a session to validate, when the refresh revoked not match, should throw SessionException`() {
+    fun `given a authentication to refresh, when the refresh revoked or not match, should throw SessionException`() {
         val user = UserSampler.sample()
         val session = SessionSampler.sample()
         val refreshToken = "031231amdsfakKKA"
-
-        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sampleExpired()
+        val accessToken = JWTUtils.generateToken(user.id, customAccessTokenSecret, listOf(ROLE_USER), session.id, customAccessTokenExpiration.toLong())
 
         every { sessionService.findByIdAndUserId(any(), any()) } returns session
         every { userRepository.findById(any()) } returns Optional.of(user)
 
-        assertThrows<SessionException> {
-            authenticationService.authenticationValidate(user.id, session.id, refreshToken)
+        assertThrows<BadRefreshTokenException> {
+            authenticationService.refresh(accessToken, refreshToken)
         }
 
         verify { sessionService.findByIdAndUserId(session.id, user.id) }
         verify { userRepository.findById(any()) }
+        verify(exactly = 0) { sessionService.update(session.id, user.id, any()) }
     }
 }
