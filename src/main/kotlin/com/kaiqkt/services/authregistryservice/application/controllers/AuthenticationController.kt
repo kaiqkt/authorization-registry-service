@@ -1,7 +1,7 @@
 package com.kaiqkt.services.authregistryservice.application.controllers
 
 import com.kaiqkt.commons.security.auth.AUTHORIZE_USER
-import com.kaiqkt.commons.security.auth.getRefreshToken
+import com.kaiqkt.commons.security.auth.filter.BEARER_PREFIX
 import com.kaiqkt.commons.security.auth.getSessionId
 import com.kaiqkt.commons.security.auth.getUserId
 import com.kaiqkt.services.authregistryservice.application.dto.toDomain
@@ -11,6 +11,7 @@ import com.kaiqkt.services.authregistryservice.domain.services.AuthenticationSer
 import com.kaiqkt.services.authregistryservice.generated.application.controllers.AuthApi
 import com.kaiqkt.services.authregistryservice.generated.application.dto.AuthenticationResponseV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.LoginV1
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.RestController
@@ -18,14 +19,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class AuthenticationController(private val authenticationService: AuthenticationService) : AuthApi {
-
-    @PreAuthorize(AUTHORIZE_USER)
-    override fun authenticationValidate(): ResponseEntity<AuthenticationResponseV1> {
-        return authenticationService.authenticationValidate(getUserId(), getSessionId(), getRefreshToken())
-            ?.let {
-                ResponseEntity.ok(it.toV1())
-            } ?: return ResponseEntity.noContent().build()
-    }
 
     @PreAuthorize(AUTHORIZE_USER)
     override fun logout(): ResponseEntity<Unit> {
@@ -39,12 +32,17 @@ class AuthenticationController(private val authenticationService: Authentication
             .also { return ResponseEntity.noContent().build() }
     }
 
+    override fun refresh(authorization: String, refreshToken: String): ResponseEntity<AuthenticationResponseV1> {
+        val accessToken = authorization.replace(BEARER_PREFIX, "")
+        authenticationService.refresh(accessToken, refreshToken).also { return ResponseEntity.ok(it.toV1()) }
+    }
+
     override fun authenticate(
         userAgent: String,
         appVersion: String,
         loginV1: LoginV1
     ): ResponseEntity<AuthenticationResponseV1> {
-        authenticationService.authenticate(Device(userAgent, appVersion), loginV1.toDomain())
+        authenticationService.authenticateWithCredentials(Device(userAgent, appVersion), loginV1.toDomain())
             .toV1()
             .also { return ResponseEntity.ok(it) }
     }

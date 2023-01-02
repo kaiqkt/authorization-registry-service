@@ -166,7 +166,7 @@ class AuthenticationTest : ApplicationIntegrationTest() {
     }
 
     @Test
-    fun `given an authentication and session to validate, when the access token is no expired and the session is not revoked or expired, should return http status 204`() {
+    fun `given an authentication to refresh, when the refresh token is not expired and matches, should return http status 200 with new authentication response`() {
 
         val session = SessionSampler.sample()
         val user = UserSampler.sample()
@@ -185,35 +185,7 @@ class AuthenticationTest : ApplicationIntegrationTest() {
 
         webTestClient
             .post()
-            .uri("/auth/validate")
-            .header(Headers.AUTHORIZATION, "Bearer $token")
-            .header("Refresh-Token", session.refreshToken)
-            .exchange()
-            .expectStatus()
-            .isNoContent
-    }
-
-    @Test
-    fun `given an authentication and session to validate, when the access token is expired and the session is not revoked or expired, should return http status 200 with new authentication response`() {
-
-        val session = SessionSampler.sample()
-        val user = UserSampler.sample()
-
-        val token =
-            JWTUtils.generateToken(
-                user.id,
-                customerSecret,
-                listOf(ROLE_USER),
-                session.id,
-                -sessionExpiration.toLong()
-            )
-
-        userRepository.save(user)
-        sessionRepository.save(session)
-
-        webTestClient
-            .post()
-            .uri("/auth/validate")
+            .uri("/auth/refresh")
             .header(Headers.AUTHORIZATION, "Bearer $token")
             .header("Refresh-Token", session.refreshToken)
             .exchange()
@@ -230,7 +202,7 @@ class AuthenticationTest : ApplicationIntegrationTest() {
     }
 
     @Test
-    fun `given an authentication and session to validate, when the access token is expired but the refresh token not matches, should return http status 401`() {
+    fun `given an authentication to refresh,given refresh token with not matches, should return http status 401`() {
 
         val session = SessionSampler.sample()
         val user = UserSampler.sample()
@@ -249,7 +221,7 @@ class AuthenticationTest : ApplicationIntegrationTest() {
 
         webTestClient
             .post()
-            .uri("/auth/validate")
+            .uri("/auth/refresh")
             .header(Headers.AUTHORIZATION, "Bearer $token")
             .header("Refresh-Token", "TEst")
             .exchange()
@@ -258,7 +230,7 @@ class AuthenticationTest : ApplicationIntegrationTest() {
     }
 
     @Test
-    fun `given an authentication and session to validate, when session is revoked or expired, should return http status 401`() {
+    fun `given an authentication to refresh,when the session is revoked, should return http status 401`() {
 
         val session = SessionSampler.sample()
 
@@ -273,7 +245,7 @@ class AuthenticationTest : ApplicationIntegrationTest() {
 
         webTestClient
             .post()
-            .uri("/auth/validate")
+            .uri("/auth/refresh")
             .header(Headers.AUTHORIZATION, "Bearer $token")
             .header("Refresh-Token", "TEst")
             .exchange()

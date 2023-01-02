@@ -55,7 +55,7 @@ class SessionServiceTest {
         every { sessionRepository.save(any()) } just runs
 
         val session =
-            sessionService.save(sessionId = null, userId = userId, device = device, refreshToken = refreshToken)
+            sessionService.save(userId = userId, device = device, refreshToken = refreshToken)
 
         verify { sessionRepository.save(session) }
     }
@@ -64,13 +64,12 @@ class SessionServiceTest {
     fun `given a session to update, should give the session id and persist successfully`() {
         val sessionId = ULID.random()
         val userId = ULID.random()
-        val device = DeviceSampler.sample()
         val refreshToken = generateRandomString()
 
         every { sessionRepository.save(any()) } just runs
 
         val session =
-            sessionService.save(sessionId = sessionId, userId = userId, device = device, refreshToken = refreshToken)
+            sessionService.update(userId = userId, sessionId = sessionId, refreshToken = refreshToken)
 
         verify { sessionRepository.save(session) }
     }
@@ -83,7 +82,6 @@ class SessionServiceTest {
 
         assertThrows<PersistenceException> {
             sessionService.save(
-                sessionId = session.id,
                 userId = session.userId,
                 device = session.device,
                 refreshToken = session.refreshToken

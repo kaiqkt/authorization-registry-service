@@ -4,7 +4,7 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.AddressNotFound
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.DomainException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefinePasswordException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
@@ -59,11 +59,11 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         return ResponseEntity(responseBody, HttpStatus.BAD_REQUEST)
     }
 
-    @ExceptionHandler(SessionException::class)
-    fun handleSessionException(ex: SessionException, request: WebRequest): ResponseEntity<ErrorResponseV1> {
+    @ExceptionHandler(BadRefreshTokenException::class)
+    fun handleBadRefreshTokenException(ex: BadRefreshTokenException, request: WebRequest): ResponseEntity<ErrorResponseV1> {
         val responseBody = ErrorResponseV1(ex.message)
 
-        logger.error("Session exception error: ${getUri(request)}")
+        logger.error("Bad refresh token error: ${getUri(request)}")
 
         return ResponseEntity(responseBody, HttpStatus.UNAUTHORIZED)
     }

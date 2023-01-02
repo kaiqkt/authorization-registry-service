@@ -2,30 +2,43 @@ package com.kaiqkt.services.authregistryservice.domain.services
 
 import com.kaiqkt.services.authregistryservice.domain.entities.Device
 import com.kaiqkt.services.authregistryservice.domain.entities.Session
-import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.repositories.SessionRepository
-import io.azam.ulidj.ULID
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class SessionService(
     private val sessionRepository: SessionRepository
 ) {
 
-    fun save(sessionId: String?, userId: String, device: Device, refreshToken: String): Session =
-        Session(
-            id = sessionId ?: ULID.random(),
+    fun save(userId: String, device: Device, refreshToken: String): Session {
+        val session = Session(
             userId = userId,
             device = device,
             refreshToken = refreshToken
-        ).also {
-            sessionRepository.save(it)
-            logger.info("Session ${it.id} for user ${it.userId} saved successfully")
+        )
+
+        sessionRepository.save(session)
+
+        logger.info("Session ${session.id} for user $userId persisted successfully")
+
+        return session
+    }
+
+    fun update(sessionId: String, userId: String, refreshToken: String): Session {
+        findByIdAndUserId(sessionId, userId).apply {
+            this.refreshToken = refreshToken
+            this.activeAt = LocalDateTime.now()
+        }.run {
+            sessionRepository.save(this)
+            logger.info("Session $sessionId for user $userId updated successfully")
+
+            return this
         }
+    }
 
     fun revoke(sessionId: String, userId: String) {
         sessionRepository.delete(sessionId, userId)
