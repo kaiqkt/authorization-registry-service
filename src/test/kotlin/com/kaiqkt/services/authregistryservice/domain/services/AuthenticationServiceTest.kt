@@ -88,6 +88,23 @@ class AuthenticationServiceTest {
 
         val authentication = authenticationService.authenticate(user, device)
 
+        verify { sessionService.save(user.id, device, any()) }
+
+        Assertions.assertEquals(user, authentication.user)
+    }
+
+    @Test
+    fun `given a user, user-agent and the app version, should update the session and return the authentication`() {
+        val user = UserSampler.sample()
+        val session = SessionSampler.sample()
+        val device = DeviceSampler.sample()
+
+        every { sessionService.update(any(), any(), any()) } returns session
+
+        val authentication = authenticationService.authenticate(user, device, session.id)
+
+        verify { sessionService.update(session.id, user.id, any()) }
+
         Assertions.assertEquals(user, authentication.user)
     }
 
@@ -129,6 +146,32 @@ class AuthenticationServiceTest {
         }
 
         verify { sessionService.revoke(session.id, user.id) }
+    }
+
+    @Test
+    fun `given a userId and session id, should revoke all session except the current successfully`() {
+        val user = UserSampler.sample()
+        val session = SessionSampler.sample()
+
+        every { sessionService.revokeAllExceptCurrent(any(), any()) } just runs
+
+        authenticationService.logoutAllExceptCurrent(user.id, session.id)
+
+        verify { sessionService.revokeAllExceptCurrent(session.id, user.id) }
+    }
+
+    @Test
+    fun `given a userId and session id, when fail to revoke the sessions, should throw PersistenceException`() {
+        val user = UserSampler.sample()
+        val session = SessionSampler.sample()
+
+        every { sessionService.revokeAllExceptCurrent(any(), any()) } throws PersistenceException("Unable to delete session")
+
+        assertThrows<PersistenceException> {
+            authenticationService.logoutAllExceptCurrent(user.id, session.id)
+        }
+
+        verify { sessionService.revokeAllExceptCurrent(session.id, user.id) }
     }
 
     @Test

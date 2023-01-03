@@ -155,6 +155,20 @@ class SessionRepositoryImplTest {
     }
 
     @Test
+    fun `given a user id, when fail to delete all sessions, should throw PersistenceException`() {
+        val userId = ULID.random()
+
+        every { redisTemplate.delete(any<String>()) } throws Exception()
+
+        assertThrows<PersistenceException> {
+            sessionRepositoryImpl.deleteAllByUserId(userId)
+        }
+
+        verify { redisTemplate.delete("USER_SESSION:$userId") }
+    }
+
+
+    @Test
     fun `given a user id, should delete a sessions based on userid except the actual successfully`() {
         val userId = ULID.random()
         val session1 = SessionSampler.sample()
@@ -191,7 +205,7 @@ class SessionRepositoryImplTest {
 
 
     @Test
-    fun `given a user id, when fail to delete all sessions except the current should throw PersistenceException`() {
+    fun `given a user id, when fail to delete all sessions except the current, should throw PersistenceException`() {
         val userId = ULID.random()
         val session1 = SessionSampler.sample()
         val session2 = SessionSampler.sample().copy(id = ULID.random())

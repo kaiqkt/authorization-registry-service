@@ -16,8 +16,9 @@ val excludePackages: List<String> by extra {
         "com/kaiqkt/services/authregistryservice/resources/communication/EmailTemplateProvider*",
         "com/kaiqkt/services/authregistryservice/resources/communication/SmsTemplateProvider*",
         "com/kaiqkt/services/authregistryservice/resources/cache/RedisConfig*",
-        "com/kaiqkt/services/authregistryservice/Application*"
-    )
+        "com/kaiqkt/services/authregistryservice/Application*",
+        "com/kaiqkt/services/authregistryservice/resources/swagger/**",
+        )
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -203,11 +204,11 @@ tasks.withType<JacocoCoverageVerification> {
     violationRules {
         rule {
             limit {
-                minimum = "0.0".toBigDecimal()
+                minimum = "1.0".toBigDecimal()
                 counter = "LINE"
             }
             limit {
-                minimum = "0.0".toBigDecimal()
+                minimum = "1.0".toBigDecimal()
                 counter = "BRANCH"
             }
         }

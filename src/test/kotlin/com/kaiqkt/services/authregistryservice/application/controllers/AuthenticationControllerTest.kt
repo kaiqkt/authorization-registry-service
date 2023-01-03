@@ -10,6 +10,7 @@ import com.kaiqkt.services.authregistryservice.application.security.CustomAuthen
 import com.kaiqkt.services.authregistryservice.domain.entities.AuthenticationSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.DeviceSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.services.AuthenticationService
 import com.kaiqkt.services.authregistryservice.resources.exceptions.PersistenceException
@@ -175,6 +176,41 @@ class AuthenticationControllerTest {
     }
 
     @Test
+    fun `given a request to logout all sessions except the current, when successfully revoke the sessions, should return http status 204`() {
+        val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
+        val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
+
+        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
+
+        every { authenticationService.logoutAllExceptCurrent(any(), any()) } just runs
+
+        val response = controller.logoutAllExceptCurrent()
+
+        verify { authenticationService.logoutAllExceptCurrent(userId, sessionId) }
+
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
+    }
+
+    @Test
+    fun `given a request to logout all sessions except the current, when fail to persist the revoked sessions, should throw PersistenceException`() {
+        val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
+        val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
+
+        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
+
+        every {
+            authenticationService.logoutAllExceptCurrent(any(), any())
+        } throws PersistenceException("Unable to persist session ${getSessionId()}}}")
+
+        assertThrows<PersistenceException> {
+            controller.logoutAllExceptCurrent()
+        }
+
+        verify { authenticationService.logoutAllExceptCurrent(userId, sessionId) }
+    }
+
+
+    @Test
     fun `given a request to authentication refresh, when the refresh token is correctly, should return new authentication and http status 200`() {
         val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
         val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
@@ -196,21 +232,21 @@ class AuthenticationControllerTest {
         Assertions.assertEquals(authentication.refreshToken, response.body!!.refreshToken)
     }
 
-//    @Test
-//    fun `given a request to authentication refresh, when the access token is expired or is not matches, the session is not revoked but the refresh token not matches or is expired, should throw SessionException`() {
-//        val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
-//        val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
-//        val refreshToken = "031231amdsfakKKAy"
-//        val accessToken = JWTUtils.generateToken(userId, customAccessTokenSecret, listOf(ROLE_USER), sessionId, customAccessTokenExpiration.toLong())
-//
-//        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
-//
-//        every { authenticationService.refresh(any(), any()) } throws SessionException("Refresh token is invalid")
-//
-//        assertThrows<SessionException> {
-//            controller.refresh(accessToken, refreshToken)
-//        }
-//
-//        verify { authenticationService.refresh(accessToken, refreshToken) }
-//    }
+    @Test
+    fun `given a request to authentication refresh, when the access token is expired or is not matches, should throw SessionException`() {
+        val userId = "01GFPPTXKZ8ZJRG8MF701M0W99"
+        val sessionId = "01GFPPTXKZ8ZJRG8MF701M0W88"
+        val refreshToken = "031231amdsfakKKAy"
+        val accessToken = JWTUtils.generateToken(userId, customAccessTokenSecret, listOf(ROLE_USER), sessionId, customAccessTokenExpiration.toLong())
+
+        SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
+
+        every { authenticationService.refresh(any(), any()) } throws BadRefreshTokenException("Refresh token is invalid")
+
+        assertThrows<BadRefreshTokenException> {
+            controller.refresh(accessToken, refreshToken)
+        }
+
+        verify { authenticationService.refresh(accessToken, refreshToken) }
+    }
 }
