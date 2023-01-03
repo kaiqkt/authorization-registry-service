@@ -45,7 +45,7 @@ class AuthenticationService(
 
     fun authenticate(user: User, device: Device? = null, sessionId: String? = null): Authentication {
         val refreshToken = generateRandomString()
-        val session = if (sessionId.isNullOrBlank()) {
+        val session = if (sessionId == null) {
             sessionService.save(userId = user.id, device = device!!, refreshToken = refreshToken)
         } else {
             sessionService.update(sessionId, user.id, refreshToken)
@@ -78,6 +78,10 @@ class AuthenticationService(
 
     fun logout(userId: String, sessionId: String) {
         sessionService.revoke(sessionId, userId)
+    }
+
+    fun logoutAllExceptCurrent(userId: String, sessionId: String) {
+        sessionService.revokeAllExceptCurrent(sessionId, userId)
     }
 
     companion object {

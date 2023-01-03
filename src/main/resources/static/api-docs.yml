@@ -366,6 +366,17 @@ paths:
       responses:
         204:
           description: User logged out successfully
+  /auth/logout/all:
+    delete:
+      tags:
+        - logout
+      description: Revoke all sessions except the current based on customer token
+      operationId: logoutAllExceptCurrent
+      security:
+        - CustomerAuth: [ ]
+      responses:
+        204:
+          description: User logged out successfully
   /auth/logout/{session_id}:
     delete:
       tags:

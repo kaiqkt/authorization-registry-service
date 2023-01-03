@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-class AuthenticationController(private val authenticationService: AuthenticationService) : AuthApi {
+class  AuthenticationController(private val authenticationService: AuthenticationService) : AuthApi {
 
     @PreAuthorize(AUTHORIZE_USER)
     override fun logout(): ResponseEntity<Unit> {
@@ -29,6 +29,12 @@ class AuthenticationController(private val authenticationService: Authentication
     @PreAuthorize(AUTHORIZE_USER)
     override fun logoutSessionById(sessionId: String): ResponseEntity<Unit> {
         authenticationService.logout(getUserId(), sessionId)
+            .also { return ResponseEntity.noContent().build() }
+    }
+
+    @PreAuthorize(AUTHORIZE_USER)
+    override fun logoutAllExceptCurrent(): ResponseEntity<Unit> {
+        authenticationService.logoutAllExceptCurrent(getUserId(), getSessionId())
             .also { return ResponseEntity.noContent().build() }
     }
 

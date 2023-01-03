@@ -12,6 +12,7 @@ import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.generated.application.dto.AuthenticationResponseV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorResponseV1
 import com.kaiqkt.services.authregistryservice.resources.communication.helpers.CommunicationServiceMock
+import io.azam.ulidj.ULID
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
@@ -163,6 +164,31 @@ class AuthenticationTest : ApplicationIntegrationTest() {
             .isNoContent
 
         Assertions.assertNull(sessionRepository.findByIdAndUserId(session.id, user.id))
+    }
+
+    @Test
+    fun `given a logout request for all sessions except the current, should revoke all sessions for the requested user and return http status 204`() {
+
+        val user = UserSampler.sample()
+        val session = SessionSampler.sample()
+        val session2 = SessionSampler.sample().copy(id = ULID.random())
+
+        val token =
+            JWTUtils.generateToken(user.id, customerSecret, listOf(ROLE_USER), session.id, sessionExpiration.toLong())
+
+        sessionRepository.save(session)
+        sessionRepository.save(session2)
+
+        webTestClient
+            .delete()
+            .uri("/auth/logout/${session.id}")
+            .header(Headers.AUTHORIZATION, "Bearer $token")
+            .exchange()
+            .expectStatus()
+            .isNoContent
+
+        val size = sessionRepository.findAllUserId(user.id).size
+        Assertions.assertEquals(1, size)
     }
 
     @Test
