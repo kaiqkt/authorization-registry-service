@@ -19,7 +19,7 @@ spring:
 service-shared-secret: ${SERVICE_SECRET}
 customer-auth-signing-secret: ${CUSTOMER_SECRET}
 
-ignore-post-paths: /user, /user/redefine-password/code, /user/redefine-password, /auth/login, auth/refresh
+ignore-post-paths: /user, /user/redefine-password/code, /user/redefine-password, /auth/login, /auth/refresh
 ignore-put-paths: /user/change-password
 ignore-get-paths: /user/redefine-password/*
 
