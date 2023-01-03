@@ -434,6 +434,23 @@ paths:
                 items:
                   $ref: '#/components/schemas/SessionResponseV1'
 
+  /session/exist:
+    get:
+      tags:
+        - session
+      description: Return if the session exist
+      operationId: exists
+      security:
+        - CustomerAuth: [ ]
+      responses:
+        204:
+          description: Session exist
+        404:
+          description: Session not found
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseV1'
 components:
   schemas:
     LoginV1:

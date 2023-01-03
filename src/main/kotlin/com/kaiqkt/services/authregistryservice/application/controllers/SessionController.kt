@@ -22,4 +22,11 @@ class SessionController(
             .map { it.toV1(getSessionId()) }
             .also { return ResponseEntity.ok(it) }
     }
+
+    @PreAuthorize(AUTHORIZE_USER)
+    override fun exists(): ResponseEntity<Unit> {
+        sessionService.findByIdAndUserId(getSessionId(), getUserId()).also {
+            return ResponseEntity.noContent().build()
+        }
+    }
 }
