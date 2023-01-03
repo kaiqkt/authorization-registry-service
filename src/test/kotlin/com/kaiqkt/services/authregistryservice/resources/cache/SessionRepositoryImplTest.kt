@@ -146,50 +146,12 @@ class SessionRepositoryImplTest {
     @Test
     fun `given a user id, should delete all sessions based on userid successfully`() {
         val userId = ULID.random()
-        val session = SessionSampler.sample()
 
-        every {
-            hashOperations.entries(any())
-        } returns mutableMapOf("USER_SESSION:${session.userId}" to session.toJson())
-        every { hashOperations.delete(any()) } returns 1L
+        every { redisTemplate.delete(any<String>()) } returns true
 
         sessionRepositoryImpl.deleteAllByUserId(userId)
 
-        verify { hashOperations.delete("USER_SESSION:$userId", session.id) }
-        verify { hashOperations.entries("USER_SESSION:$userId") }
-    }
-
-    @Test
-    fun `given a user id, when no have any session, should do nothing`() {
-        val userId = ULID.random()
-
-        every {
-            hashOperations.entries(any())
-        } returns emptyMap()
-        every { hashOperations.delete(any()) } returns 0L
-
-        sessionRepositoryImpl.deleteAllByUserId(userId)
-
-        verify(exactly = 0) { hashOperations.delete(any(), any()) }
-        verify { hashOperations.entries("USER_SESSION:$userId") }
-    }
-
-    @Test
-    fun `given a user id, when fail to delete all sessions, should throw PersistenceExcept`() {
-        val userId = ULID.random()
-        val session = SessionSampler.sample()
-
-        every { hashOperations.delete(any(), any()) } throws Exception()
-        every {
-            hashOperations.entries(any())
-        } returns mutableMapOf("USER_SESSION:${session.userId}" to session.toJson())
-
-        assertThrows<PersistenceException> {
-            sessionRepositoryImpl.deleteAllByUserId(userId)
-        }
-
-        verify { hashOperations.delete("USER_SESSION:$userId", session.id) }
-        verify { hashOperations.entries("USER_SESSION:$userId") }
+        verify { redisTemplate.delete("USER_SESSION:$userId") }
     }
 
     @Test
