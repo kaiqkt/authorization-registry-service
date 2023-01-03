@@ -66,13 +66,8 @@ class SessionRepositoryImpl(
 
     override fun deleteAllByUserId(userId: String) {
         val key = generateSessionKey(userId)
-        val sessionHashKeys = findAllUserId(userId)
         try {
-            if (sessionHashKeys.isNotEmpty()) {
-                sessionHashKeys.map {
-                    hashOperations.delete(key, it.id)
-                }
-            }
+            redisTemplate.delete(key)
         } catch (ex: Exception) {
             throw PersistenceException(
                 "Unable to delete sessions"
