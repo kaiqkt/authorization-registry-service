@@ -16,7 +16,6 @@ import com.kaiqkt.services.authregistryservice.generated.application.dto.NewPass
 import com.kaiqkt.services.authregistryservice.generated.application.dto.PhoneV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.RedefinePasswordRequestV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.RedefinePasswordV1
-import com.kaiqkt.services.authregistryservice.generated.application.dto.UpdateAddressV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.UserResponseV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.UserV1
 import org.springframework.http.HttpStatus
@@ -42,12 +41,14 @@ class UserController(
         appVersion: String,
         newPasswordV1: NewPasswordV1
     ): ResponseEntity<Unit> {
+        val device = Device(userAgent, appVersion)
+
         userService.updatePassword(
             newPasswordV1.actualPassword,
             newPasswordV1.newPassword,
             getUserId(),
             getSessionId(),
-            Device(userAgent, appVersion)
+            device
         )
 
         return ResponseEntity.noContent().build()
@@ -74,8 +75,8 @@ class UserController(
     }
 
     @PreAuthorize(AUTHORIZE_USER)
-    override fun updateAddress(addressId: String, updateAddressV1: UpdateAddressV1): ResponseEntity<Unit> {
-        userService.updateAddress(getUserId(), addressId, updateAddressV1.toDomain())
+    override fun updateAddress(addressId: String, addressV1: AddressV1): ResponseEntity<Unit> {
+        userService.updateAddress(getUserId(), addressV1.toDomain(addressId))
         return ResponseEntity.noContent().build()
     }
 
@@ -84,7 +85,8 @@ class UserController(
         appVersion: String,
         userV1: UserV1
     ): ResponseEntity<AuthenticationResponseV1> {
-        userService.create(Device(userAgent, appVersion), userV1.toDomain())
+        val device = Device(userAgent, appVersion)
+        userService.create(device, userV1.toDomain())
             .toV1()
             .also { return ResponseEntity(it, HttpStatus.CREATED) }
     }

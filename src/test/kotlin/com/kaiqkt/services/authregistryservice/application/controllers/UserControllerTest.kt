@@ -6,7 +6,6 @@ import com.kaiqkt.services.authregistryservice.application.dto.NewPasswordV1Samp
 import com.kaiqkt.services.authregistryservice.application.dto.PhoneV1Sampler
 import com.kaiqkt.services.authregistryservice.application.dto.RedefinePasswordRequestV1Sampler
 import com.kaiqkt.services.authregistryservice.application.dto.RedefinePasswordV1Sampler
-import com.kaiqkt.services.authregistryservice.application.dto.UpdateAddressV1Sampler
 import com.kaiqkt.services.authregistryservice.application.dto.UserV1Sampler
 import com.kaiqkt.services.authregistryservice.application.dto.toDomain
 import com.kaiqkt.services.authregistryservice.application.security.CustomAuthenticationSampler
@@ -294,53 +293,53 @@ class UserControllerTest {
 
     @Test
     fun `given a address to update, when find the user and exist the address, should update and return http 204`() {
-        val updateAddress = UpdateAddressV1Sampler.sample()
+        val request = AddressV1Sampler.sample()
         val user = UserSampler.sample()
         val addressId = user.addresses.first().id
 
         SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
 
-        every { userService.updateAddress(any(), any(), any()) } just runs
+        every { userService.updateAddress(any(), any()) } just runs
 
-        val response = controller.updateAddress(addressId, updateAddress)
+        val response = controller.updateAddress(addressId, request)
 
-        verify { userService.updateAddress(user.id, addressId, updateAddress.toDomain()) }
+        verify { userService.updateAddress(user.id, request.toDomain(addressId)) }
 
         Assertions.assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
     }
 
     @Test
     fun `given a address to update, when not find the user, should throw UserNotFoundException`() {
-        val updateAddress = UpdateAddressV1Sampler.sample()
+        val request = AddressV1Sampler.sample()
         val user = UserSampler.sample()
         val addressId = user.addresses.first().id
 
         SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
 
-        every { userService.updateAddress(any(), any(), any()) } throws UserNotFoundException()
+        every { userService.updateAddress(any(), any()) } throws UserNotFoundException()
 
         assertThrows<UserNotFoundException> {
-            controller.updateAddress(addressId, updateAddress)
+            controller.updateAddress(addressId, request)
         }
 
-        verify { userService.updateAddress(user.id, addressId, updateAddress.toDomain()) }
+        verify { userService.updateAddress(user.id, request.toDomain(addressId)) }
     }
 
     @Test
     fun `given a address to update, when not find the address, should throw AddressNotFoundException`() {
-        val updateAddress = UpdateAddressV1Sampler.sample()
+        val request = AddressV1Sampler.sample()
         val user = UserSampler.sample()
         val addressId = user.addresses.first().id
 
         SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
 
-        every { userService.updateAddress(any(), any(), any()) } throws AddressNotFoundException()
+        every { userService.updateAddress(any(), any()) } throws AddressNotFoundException()
 
         assertThrows<AddressNotFoundException> {
-            controller.updateAddress(addressId, updateAddress)
+            controller.updateAddress(addressId, request)
         }
 
-        verify { userService.updateAddress(user.id, addressId, updateAddress.toDomain()) }
+        verify { userService.updateAddress(user.id, request.toDomain(addressId)) }
     }
 
     @Test

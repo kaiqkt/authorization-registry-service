@@ -1,5 +1,7 @@
 package com.kaiqkt.services.authregistryservice.domain.entities
 
+import io.azam.ulidj.ULID
+
 object AddressSampler {
     fun sample() = Address(
         id = "01GKNAXJG7T7QPRC8JT87DVHT8",
@@ -13,6 +15,7 @@ object AddressSampler {
     )
 
     fun sampleWithInvalidStreet() = Address(
+        id = ULID.random(),
         zipCode = "09111-666111",
         street = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean ma",
         number = "12345678901",

@@ -5,6 +5,7 @@
   "additionalProperties": {
     "hideGenerationTimestamp": true,
     "useBeanValidation": true,
-    "interfaceOnly": true
+    "interfaceOnly": true,
+    "enumPropertyNaming" : "UPPERCASE"
   }
 }

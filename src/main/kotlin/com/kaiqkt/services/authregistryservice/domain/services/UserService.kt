@@ -5,7 +5,6 @@ import com.kaiqkt.services.authregistryservice.domain.entities.Address
 import com.kaiqkt.services.authregistryservice.domain.entities.Authentication
 import com.kaiqkt.services.authregistryservice.domain.entities.Device
 import com.kaiqkt.services.authregistryservice.domain.entities.Phone
-import com.kaiqkt.services.authregistryservice.domain.entities.UpdateAddress
 import com.kaiqkt.services.authregistryservice.domain.entities.User
 import com.kaiqkt.services.authregistryservice.domain.exceptions.AddressNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
@@ -50,10 +49,10 @@ class UserService(
         logger.info("Delete address $addressId for user $userId")
     }
 
-    fun updateAddress(userId: String, addressId: String, updateAddress: UpdateAddress) {
-        runCatching { userRepositoryCustom.updateAddress(userId, addressId, updateAddress) }
+    fun updateAddress(userId: String, address: Address) {
+        runCatching { userRepositoryCustom.updateAddress(userId, address) }
             .onFailure { throw AddressNotFoundException() }
-            .also { logger.info("Address $addressId of user $userId updated successfully") }
+            .also { logger.info("Address ${address.id} of user $userId updated successfully") }
     }
 
     fun updatePhone(userId: String, phone: Phone) {

@@ -6,7 +6,6 @@ import com.kaiqkt.commons.crypto.random.generateRandomString
 import com.kaiqkt.commons.security.auth.ROLE_USER
 import com.kaiqkt.services.authregistryservice.domain.entities.Authentication
 import com.kaiqkt.services.authregistryservice.domain.entities.Device
-import com.kaiqkt.services.authregistryservice.domain.entities.Login
 import com.kaiqkt.services.authregistryservice.domain.entities.User
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
@@ -29,12 +28,12 @@ class AuthenticationService(
     private val expirationAuthToken: String
 ) {
 
-    fun authenticateWithCredentials(device: Device, login: Login): Authentication {
-        logger.info("Authenticating user ${login.email}")
+    fun authenticateWithCredentials(device: Device, email: String, password: String): Authentication {
+        logger.info("Authenticating user $email")
 
-        val user = userRepository.findByEmail(login.email) ?: throw UserNotFoundException()
+        val user = userRepository.findByEmail(email) ?: throw UserNotFoundException()
 
-        if (EncryptUtils.validatePassword(login.password, user.password)) {
+        if (EncryptUtils.validatePassword(password, user.password)) {
 
             return authenticate(user, device).also {
                 emailService.sendNewAccessEmail(user, device)

@@ -1,11 +1,12 @@
 package com.kaiqkt.services.authregistryservice.domain.services
 
 import com.kaiqkt.commons.crypto.random.generateRandomString
+import com.kaiqkt.services.authregistryservice.application.dto.AddressV1Sampler
+import com.kaiqkt.services.authregistryservice.domain.entities.AddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.AuthenticationSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.DeviceSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.PhoneSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.SessionSampler
-import com.kaiqkt.services.authregistryservice.domain.entities.UpdateAddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.AddressNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
@@ -139,14 +140,13 @@ class UserServiceTest {
     @Test
     fun `given an address to update, should update the fields which is not null`() {
         val user = UserSampler.sample()
-        val addressId = user.addresses.first().id
-        val updateAddress = UpdateAddressSampler.sample()
+        val address = AddressSampler.sample()
 
-        every { userRepositoryCustom.updateAddress(any(), any(), any()) } just runs
+        every { userRepositoryCustom.updateAddress(any(), any()) } just runs
 
-        userService.updateAddress(user.id, addressId, updateAddress)
+        userService.updateAddress(user.id, address)
 
-        every { userRepositoryCustom.updateAddress(any(), any(), any()) } just runs
+        every { userRepositoryCustom.updateAddress(user.id, address) } just runs
     }
 
     @Test
@@ -164,29 +164,27 @@ class UserServiceTest {
     @Test
     fun `given an address to update, when is all null, should update with the values with is already saved`() {
         val user = UserSampler.sample()
-        val addressId = user.addresses.first().id
-        val updateAddress = UpdateAddressSampler.sampleUpdateAddressNull()
+        val address = AddressSampler.sample()
 
-        every { userRepositoryCustom.updateAddress(any(), any(), any()) } just runs
+        every { userRepositoryCustom.updateAddress(any(), any()) } just runs
 
-        userService.updateAddress(user.id, addressId, updateAddress)
+        userService.updateAddress(user.id, address)
 
-        verify { userRepositoryCustom.updateAddress(user.id, addressId, updateAddress) }
+        verify { userRepositoryCustom.updateAddress(user.id, address) }
     }
 
     @Test
     fun `given an address to update, when not have the address, should throw AddressNotFoundException`() {
         val user = UserSampler.sample()
-        val addressId = ULID.random()
-        val updateAddress = UpdateAddressSampler.sample()
+        val address = AddressSampler.sample()
 
-        every { userRepositoryCustom.updateAddress(any(), any(), any()) } throws Exception()
+        every { userRepositoryCustom.updateAddress(any(), any()) } throws Exception()
 
         assertThrows<AddressNotFoundException> {
-            userService.updateAddress(user.id, addressId, updateAddress)
+            userService.updateAddress(user.id, address)
         }
 
-        verify { userRepositoryCustom.updateAddress(user.id, addressId, updateAddress) }
+        verify { userRepositoryCustom.updateAddress(user.id, address) }
     }
 
 

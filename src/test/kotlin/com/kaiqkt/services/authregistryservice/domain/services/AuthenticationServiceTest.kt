@@ -3,7 +3,6 @@ package com.kaiqkt.services.authregistryservice.domain.services
 import com.kaiqkt.commons.crypto.jwt.JWTUtils
 import com.kaiqkt.commons.security.auth.ROLE_USER
 import com.kaiqkt.services.authregistryservice.domain.entities.DeviceSampler
-import com.kaiqkt.services.authregistryservice.domain.entities.LoginSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.SessionSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
@@ -33,49 +32,50 @@ class AuthenticationServiceTest {
 
     @Test
     fun `given login, when user exists and password matches, should return the authentication`() {
-        val login = LoginSampler.sample()
         val user = UserSampler.sample()
         val session = SessionSampler.sample()
         val device = DeviceSampler.sample()
+        val password = "1234657"
 
         every { userRepository.findByEmail(any()) } returns user
         every { sessionService.save(any(), any(), any()) } returns session
         every { emailService.sendNewAccessEmail(any(), any()) } just runs
 
-        authenticationService.authenticateWithCredentials(device, login)
+        authenticationService.authenticateWithCredentials(device, user.email, password)
 
-        verify { userRepository.findByEmail(login.email) }
+        verify { userRepository.findByEmail(user.email) }
         verify { emailService.sendNewAccessEmail(user, device) }
         verify { sessionService.save(user.id, device, any()) }
     }
 
     @Test
     fun `given login, when user not exists, should throw UserNotFoundException`() {
-        val login = LoginSampler.sample()
+        val password = "1234657"
         val device = DeviceSampler.sample()
+        val user = UserSampler.sample()
 
         every { userRepository.findByEmail(any()) } returns null
 
         assertThrows<UserNotFoundException> {
-            authenticationService.authenticateWithCredentials(device, login)
+            authenticationService.authenticateWithCredentials(device, user.email, password)
         }
 
-        verify { userRepository.findByEmail(login.email) }
+        verify { userRepository.findByEmail(user.email) }
     }
 
     @Test
     fun `given login, when user password not matches, should throw BadCredentialsException`() {
-        val login = LoginSampler.invalidPasswordSample()
+        val password = "1234658"
         val user = UserSampler.sample()
         val device = DeviceSampler.sample()
 
         every { userRepository.findByEmail(any()) } returns user
 
         assertThrows<BadCredentialsException> {
-            authenticationService.authenticateWithCredentials(device, login)
+            authenticationService.authenticateWithCredentials(device, user.email, password)
         }
 
-        verify { userRepository.findByEmail(login.email) }
+        verify { userRepository.findByEmail(user.email) }
     }
 
     @Test

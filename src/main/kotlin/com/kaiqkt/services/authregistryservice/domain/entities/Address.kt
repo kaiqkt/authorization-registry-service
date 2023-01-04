@@ -1,9 +1,7 @@
 package com.kaiqkt.services.authregistryservice.domain.entities
 
-import io.azam.ulidj.ULID
-
 data class Address(
-    val id: String = ULID.random(),
+    val id: String,
     val zipCode: String,
     val street: String,
     val district: String,

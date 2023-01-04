@@ -48,7 +48,8 @@ class  AuthenticationController(private val authenticationService: Authenticatio
         appVersion: String,
         loginV1: LoginV1
     ): ResponseEntity<AuthenticationResponseV1> {
-        authenticationService.authenticateWithCredentials(Device(userAgent, appVersion), loginV1.toDomain())
+        val device = Device(userAgent, appVersion)
+        authenticationService.authenticateWithCredentials(device, loginV1.email, loginV1.password)
             .toV1()
             .also { return ResponseEntity.ok(it) }
     }

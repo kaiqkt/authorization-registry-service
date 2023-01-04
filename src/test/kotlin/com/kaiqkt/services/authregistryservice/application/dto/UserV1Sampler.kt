@@ -10,7 +10,7 @@ object UserV1Sampler {
         password = "Aa#34578",
         phone = PhoneV1Sampler.sample(),
         birthDate = "13/11/2001",
-        genre = GenreV1.mEN,
+        genre = GenreV1.MEN,
         address = AddressV1Sampler.sample()
     )
 
@@ -20,7 +20,7 @@ object UserV1Sampler {
         password = "Aa#34578",
         phone = PhoneV1Sampler.sample(),
         birthDate = "13/11/2001",
-        genre = GenreV1.mEN,
+        genre = GenreV1.MEN,
         address = AddressV1Sampler.sample()
     )
 }
