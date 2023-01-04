@@ -61,7 +61,9 @@ class UserRepositoryCustomImpl(private val mongoTemplate: MongoTemplate) : UserR
     override fun updatePhone(userId: String, phone: Phone) {
         val query = Query().addCriteria(Criteria.where("id").`is`(userId))
         val update = Update().apply {
-            this.set("phone", phone)
+            this.set("phone.countryCode", phone.countryCode)
+            this.set("phone.areaCode", phone.areaCode)
+            this.set("phone.number", phone.number)
             this.set("updatedAt", LocalDateTime.now())
         }
 

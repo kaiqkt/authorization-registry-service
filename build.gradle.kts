@@ -80,7 +80,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     //commons
-    implementation("com.kaiqkt.commons:commons-security:1.0.3")
+    implementation("com.kaiqkt.commons:commons-security:1.0.4")
     implementation("com.kaiqkt.commons:commons-health:1.0.0")
     implementation("com.kaiqkt.commons:commons-crypto:1.0.0")
 

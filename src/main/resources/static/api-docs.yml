@@ -28,7 +28,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/vnd.kaiqkt_new_user_v1+json:
+          application/vnd.kaiqkt_user_v1+json:
             schema:
               $ref: '#/components/schemas/UserV1'
       responses:
@@ -190,7 +190,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/vnd.kaiqkt_user_update_password_v1+json:
+          application/vnd.kaiqkt_user_password_v1+json:
             schema:
               $ref: '#/components/schemas/NewPasswordV1'
       responses:
@@ -217,7 +217,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/vnd.kaiqkt_user_send_redefine_password_v1+json:
+          application/vnd.kaiqkt_user_redefine_password_v1+json:
             schema:
               $ref: '#/components/schemas/RedefinePasswordRequestV1'
       responses:
@@ -230,7 +230,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponseV1'
   /user/redefine-password/code:
-    post:
+    put:
       tags:
         - user
       description: Redefine password based on code
