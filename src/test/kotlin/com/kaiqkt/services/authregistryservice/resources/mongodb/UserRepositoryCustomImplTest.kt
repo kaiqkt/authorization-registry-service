@@ -1,9 +1,9 @@
 package com.kaiqkt.services.authregistryservice.resources.mongodb
 
+import com.kaiqkt.services.authregistryservice.domain.entities.Address
 import com.kaiqkt.services.authregistryservice.domain.entities.AddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.PasswordSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.PhoneSampler
-import com.kaiqkt.services.authregistryservice.domain.entities.UpdateAddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.User
 import com.mongodb.client.result.UpdateResult
 import io.azam.ulidj.ULID
@@ -55,30 +55,14 @@ class UserRepositoryCustomImplTest {
 
     @Test
     fun `given a address to update, should update successfully`() {
-        val updateAddress = UpdateAddressSampler.sample()
-        val addressId = ULID.random()
+        val address = AddressSampler.sample()
         val userId = ULID.random()
 
-        val query = Query().addCriteria(Criteria.where("id").`is`(userId).and("addresses.id").`is`(addressId))
+        val query = Query().addCriteria(Criteria.where("id").`is`(userId).and("addresses.id").`is`(address.id))
 
         every { mongoTemplate.upsert(any(), any(), User::class.java) } returns UpdateResult.acknowledged(1, null, null)
 
-        repository.updateAddress(userId, addressId, updateAddress)
-
-        verify { mongoTemplate.upsert(query, any(), User::class.java) }
-    }
-
-    @Test
-    fun `given a address to update, should update the field with is not null successfully`() {
-        val updateAddress = UpdateAddressSampler.sampleUpdateAddressNull()
-        val addressId = ULID.random()
-        val userId = ULID.random()
-
-        val query = Query().addCriteria(Criteria.where("id").`is`(userId).and("addresses.id").`is`(addressId))
-
-        every { mongoTemplate.upsert(any(), any(), User::class.java) } returns UpdateResult.acknowledged(1, null, null)
-
-        repository.updateAddress(userId, addressId, updateAddress)
+        repository.updateAddress(userId, address)
 
         verify { mongoTemplate.upsert(query, any(), User::class.java) }
     }

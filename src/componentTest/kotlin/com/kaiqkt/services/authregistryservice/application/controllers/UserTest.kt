@@ -17,7 +17,6 @@ import com.kaiqkt.services.authregistryservice.application.dto.toDomain
 import com.kaiqkt.services.authregistryservice.domain.entities.AddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.Genre
 import com.kaiqkt.services.authregistryservice.domain.entities.SessionSampler
-import com.kaiqkt.services.authregistryservice.domain.entities.UpdateAddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.generated.application.dto.AuthenticationResponseV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorResponseV1
@@ -381,7 +380,7 @@ class UserTest : ApplicationIntegrationTest() {
     @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun `given a address to update, when exist, should update successfully and return http status 200`() {
-        val request = UpdateAddressSampler.sample()
+        val request = AddressV1Sampler.sample()
 
         val user = UserSampler.sample()
         user.addresses.add(AddressSampler.sample().copy(id = ULID.random()))
@@ -402,7 +401,7 @@ class UserTest : ApplicationIntegrationTest() {
             .put()
             .uri("/user/address/${address.id}")
             .header(Headers.AUTHORIZATION, "Bearer $token")
-            .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_update_address_v1+json"))
+            .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_address_v1+json"))
             .bodyValue(request)
             .exchange()
             .expectStatus()
@@ -418,7 +417,7 @@ class UserTest : ApplicationIntegrationTest() {
 
     @Test
     fun `given a address to update, when not exist, should return http status 404`() {
-        val updateAddress = UpdateAddressSampler.sample()
+        val address = AddressV1Sampler.sample()
         val user = UserSampler.sample()
         user.addresses.add(AddressSampler.sample().copy(id = ULID.random()))
         val addressId = ULID.random()
@@ -438,8 +437,8 @@ class UserTest : ApplicationIntegrationTest() {
             .put()
             .uri("/user/address/$addressId")
             .header(Headers.AUTHORIZATION, "Bearer $token")
-            .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_update_address_v1+json"))
-            .bodyValue(updateAddress)
+            .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_address_v1+json"))
+            .bodyValue(address)
             .exchange()
             .expectStatus()
             .isNotFound
@@ -450,7 +449,7 @@ class UserTest : ApplicationIntegrationTest() {
     fun `given a address to delete, when exist, should update successfully and return http status 204`() {
         val user = UserSampler.sample()
         user.addresses.add(AddressSampler.sample().copy(id = ULID.random()))
-        val address = AddressSampler.sample()
+        val address = AddressV1Sampler.sample()
 
         val token = JWTUtils.generateToken(user.id, customerSecret, listOf(ROLE_USER), ULID.random(), sessionExpiration.toLong())
 
@@ -483,7 +482,7 @@ class UserTest : ApplicationIntegrationTest() {
             .post()
             .uri("/user/address")
             .header(Headers.AUTHORIZATION, "Bearer $token")
-            .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_new_address_v1+json"))
+            .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_address_v1+json"))
             .bodyValue(address)
             .exchange()
             .expectStatus()

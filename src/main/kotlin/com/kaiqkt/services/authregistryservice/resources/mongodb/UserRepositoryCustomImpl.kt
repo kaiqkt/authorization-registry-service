@@ -3,7 +3,6 @@ package com.kaiqkt.services.authregistryservice.resources.mongodb
 import com.kaiqkt.commons.crypto.encrypt.Password
 import com.kaiqkt.services.authregistryservice.domain.entities.Address
 import com.kaiqkt.services.authregistryservice.domain.entities.Phone
-import com.kaiqkt.services.authregistryservice.domain.entities.UpdateAddress
 import com.kaiqkt.services.authregistryservice.domain.entities.User
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepositoryCustom
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -31,18 +30,18 @@ class UserRepositoryCustomImpl(private val mongoTemplate: MongoTemplate) : UserR
     }
 
 
-    override fun updateAddress(userId: String, addressId: String, updateAddress: UpdateAddress) {
-        val query = Query().addCriteria(Criteria.where("id").`is`(userId).and("addresses.id").`is`(addressId))
+    override fun updateAddress(userId: String, address: Address) {
+        val query = Query().addCriteria(Criteria.where("id").`is`(userId).and("addresses.id").`is`(address.id))
         
         val update = Update().apply {
-            if (updateAddress.zipCode != null) this.set("addresses.$.zipCode", updateAddress.zipCode)
-            if (updateAddress.street != null) this.set("addresses.$.street", updateAddress.street)
-            if (updateAddress.district != null) this.set("addresses.$.district", updateAddress.district)
-            if (updateAddress.complement != null) this.set("addresses.$.complement", updateAddress.complement)
-            if (updateAddress.number != null) this.set("addresses.$.number", updateAddress.number)
-            if (updateAddress.city != null) this.set("addresses.$.city", updateAddress.city)
-            if (updateAddress.state != null) this.set("addresses.$.state", updateAddress.state)
-            if (updateAddress.country != null) this.set("addresses.$.country", updateAddress.country)
+            this.set("addresses.$.zipCode", address.zipCode)
+            this.set("addresses.$.street", address.street)
+            this.set("addresses.$.district", address.district)
+            this.set("addresses.$.complement", address.complement)
+            this.set("addresses.$.number", address.number)
+            this.set("addresses.$.city", address.city)
+            this.set("addresses.$.state", address.state)
+            this.set("addresses.$.country", address.country)
             this.set("updatedAt", LocalDateTime.now())
         }
 

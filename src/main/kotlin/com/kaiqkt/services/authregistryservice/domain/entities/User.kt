@@ -15,7 +15,7 @@ data class User(
     val phone: Phone,
     val birthDate: String,
     val genre: Genre,
-    val addresses: MutableList<Address> = mutableListOf(),
+    val addresses: MutableList<Address>,
     val password: Password,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime? = null

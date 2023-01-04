@@ -5,10 +5,10 @@ import com.kaiqkt.commons.security.auth.ROLE_USER
 import com.kaiqkt.commons.security.auth.getSessionId
 import com.kaiqkt.services.authregistryservice.application.dto.AuthenticationResponseSampler
 import com.kaiqkt.services.authregistryservice.application.dto.LoginV1Sampler
-import com.kaiqkt.services.authregistryservice.application.dto.toDomain
 import com.kaiqkt.services.authregistryservice.application.security.CustomAuthenticationSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.AuthenticationSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.DeviceSampler
+import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
@@ -41,12 +41,14 @@ class AuthenticationControllerTest {
         val authentication = AuthenticationSampler.sample()
         val expectedResponse = AuthenticationResponseSampler.sample()
         val device = DeviceSampler.sample()
+        val user = UserSampler.sample()
+        val password = "1234657"
 
-        every { authenticationService.authenticateWithCredentials(any(), any()) } returns authentication
+        every { authenticationService.authenticateWithCredentials(any(), any(), any()) } returns authentication
 
         val response = controller.authenticate(USER_AGENT, APP_VERSION, login)
 
-        verify { authenticationService.authenticateWithCredentials(device, login.toDomain()) }
+        authenticationService.authenticateWithCredentials(device, user.email, password)
 
         Assertions.assertEquals(HttpStatus.OK, response.statusCode)
         Assertions.assertNotNull(response.body?.accessToken)
@@ -58,51 +60,47 @@ class AuthenticationControllerTest {
     fun `given a request to authenticate user, when user don't exist, should throw UserNotFoundException`() {
         val request = LoginV1Sampler.sample()
         val device = DeviceSampler.sample()
+        val user = UserSampler.sample()
 
-        every { authenticationService.authenticateWithCredentials(any(), any()) } throws UserNotFoundException()
+        every { authenticationService.authenticateWithCredentials(any(), any(), any()) } throws UserNotFoundException()
 
         assertThrows<UserNotFoundException> {
             controller.authenticate(USER_AGENT, APP_VERSION, request)
         }
 
-        verify {
-            authenticationService.authenticateWithCredentials(any(), any())
-        }
-
-        verify { authenticationService.authenticateWithCredentials(device, request.toDomain()) }
+        verify { authenticationService.authenticateWithCredentials(device, user.email, request.password) }
     }
 
     @Test
     fun `given a request to authenticate user, when the password does not match with the secured password, should throw BadCredentialsException`() {
         val request = LoginV1Sampler.sample()
         val device = DeviceSampler.sample()
+        val user = UserSampler.sample()
 
-        every { authenticationService.authenticateWithCredentials(any(), any()) } throws BadCredentialsException()
+        every { authenticationService.authenticateWithCredentials(any(), any(), any()) } throws BadCredentialsException()
 
         assertThrows<BadCredentialsException> {
             controller.authenticate(USER_AGENT, APP_VERSION, request)
         }
 
-        verify { authenticationService.authenticateWithCredentials(device, request.toDomain()) }
+        verify { authenticationService.authenticateWithCredentials(device, user.email, request.password) }
     }
 
     @Test
     fun `given a request to authenticate user, when fail to create a session, should throw PersistenceException`() {
         val request = LoginV1Sampler.sample()
         val device = DeviceSampler.sample()
+        val user = UserSampler.sample()
 
         every {
-            authenticationService.authenticateWithCredentials(
-                any(),
-                any()
-            )
+            authenticationService.authenticateWithCredentials(any(), any(), any())
         } throws PersistenceException("Unable to persist session A231231CBASDK}}")
 
         assertThrows<PersistenceException> {
             controller.authenticate(USER_AGENT, APP_VERSION, request)
         }
 
-        verify { authenticationService.authenticateWithCredentials(device, request.toDomain()) }
+        verify { authenticationService.authenticateWithCredentials(device, user.email, request.password) }
     }
 
     @Test

@@ -11,6 +11,6 @@ object UserResponseV1Sampler {
         phone = PhoneV1Sampler.sample(),
         addresses = mutableListOf(AddressV1Sampler.sample()),
         birthDate = "13/11/2001",
-        genre = GenreV1.mEN
+        genre = GenreV1.MEN
     )
 }
