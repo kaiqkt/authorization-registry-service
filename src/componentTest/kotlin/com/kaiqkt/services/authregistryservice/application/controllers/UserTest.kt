@@ -316,7 +316,7 @@ class UserTest : ApplicationIntegrationTest() {
 
         webTestClient
             .put()
-            .uri("/user/redefine-password/code")
+            .uri("/user/redefine-password")
             .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_redefine_password_v1+json"))
             .bodyValue(request)
             .exchange()
