@@ -229,7 +229,6 @@ paths:
             application/vnd.kaiqkt_error_v1.json:
               schema:
                 $ref: '#/components/schemas/ErrorResponseV1'
-  /user/redefine-password/code:
     put:
       tags:
         - user
@@ -358,7 +357,7 @@ paths:
   /auth/logout:
     delete:
       tags:
-        - logout
+        - authentication
       description: Revoke the session based on customer token
       operationId: logout
       security:
@@ -369,7 +368,7 @@ paths:
   /auth/logout/all:
     delete:
       tags:
-        - logout
+        - authentication
       description: Revoke all sessions except the current based on customer token
       operationId: logoutAllExceptCurrent
       security:
@@ -380,7 +379,7 @@ paths:
   /auth/logout/{session_id}:
     delete:
       tags:
-        - logout
+        - authentication
       description: Revoke the session based on specific session id
       operationId: logoutSessionById
       parameters:
@@ -398,7 +397,7 @@ paths:
   /auth/refresh:
     post:
       tags:
-        - refresh
+        - authentication
       description: Refresh the authentication
       operationId: refresh
       parameters:
@@ -445,7 +444,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/SessionResponseV1'
 
-  /session/exist:
+  /session/validate:
     get:
       tags:
         - session

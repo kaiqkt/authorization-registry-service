@@ -42,4 +42,23 @@ class SessionTest : ApplicationIntegrationTest() {
                 Assertions.assertEquals(3, sessions?.size)
             }
     }
+
+    @Test
+    fun `giving a request to validate sesion, when exist session for this user, should return http status 204`() {
+        val user = UserSampler.sample().copy(id = ULID.random())
+        val session = SessionSampler.sample().copy(id = ULID.random(), userId = user.id)
+
+        val token =
+            JWTUtils.generateToken(user.id, customerSecret, listOf(ROLE_USER), session.id, sessionExpiration.toLong())
+
+        sessionRepository.save(session)
+
+        webTestClient
+            .get()
+            .uri("/session/validate")
+            .header(Headers.AUTHORIZATION, "Bearer $token")
+            .exchange()
+            .expectStatus()
+            .isNoContent
+    }
 }
