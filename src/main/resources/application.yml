@@ -20,7 +20,7 @@ service-shared-secret: ${SERVICE_SECRET}
 customer-auth-signing-secret: ${CUSTOMER_SECRET}
 
 ignore-post-paths: /user, /user/redefine-password, /auth/login, /auth/refresh
-ignore-put-paths: /user/redefine-password/code
+ignore-put-paths: /user/redefine-password
 ignore-get-paths: /user/redefine-password/*
 
 session-expiration: ${SESSION_EXPIRATION}
