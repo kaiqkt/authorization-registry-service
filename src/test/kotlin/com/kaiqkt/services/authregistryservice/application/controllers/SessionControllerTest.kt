@@ -53,7 +53,7 @@ class SessionControllerTest {
 
         SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
 
-        every { sessionService.findByIdAndUserId(any(), any()) } throws SessionNotFoundException(session.id, session.userId)
+        every { sessionService.findByIdAndUserId(any(), any()) } throws SessionNotFoundException()
 
         assertThrows<SessionNotFoundException> {
             controller.exists()

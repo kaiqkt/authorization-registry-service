@@ -10,7 +10,8 @@ import com.kaiqkt.services.authregistryservice.application.dto.toV1
 import com.kaiqkt.services.authregistryservice.domain.entities.SessionSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.generated.application.dto.AuthenticationResponseV1
-import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorResponseV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.InvalidFieldErrorV1
 import com.kaiqkt.services.authregistryservice.resources.communication.helpers.CommunicationServiceMock
 import io.azam.ulidj.ULID
 import org.junit.jupiter.api.Assertions
@@ -49,7 +50,7 @@ class AuthenticationTest : ApplicationIntegrationTest() {
             }
 
         Assertions.assertEquals(userRepository.findAll().size, 1)
-        CommunicationServiceMock.sendEmail.mockSendEmailError()
+        CommunicationServiceMock.sendEmail.verifySendEmail(1)
     }
 
     @Test
@@ -70,10 +71,11 @@ class AuthenticationTest : ApplicationIntegrationTest() {
             .exchange()
             .expectStatus()
             .isUnauthorized
-            .expectBody(ErrorResponseV1::class.java)
+            .expectBody(ErrorV1::class.java)
             .consumeWith { response ->
                 val body = response.responseBody
-                Assertions.assertEquals(body?.details, error.details)
+                Assertions.assertEquals(body?.type, error.type)
+                Assertions.assertEquals(body?.message, error.message)
             }
 
     }
@@ -93,17 +95,18 @@ class AuthenticationTest : ApplicationIntegrationTest() {
             .exchange()
             .expectStatus()
             .isNotFound
-            .expectBody(ErrorResponseV1::class.java)
+            .expectBody(ErrorV1::class.java)
             .consumeWith { response ->
                 val body = response.responseBody
-                Assertions.assertEquals(error.details, body?.details)
+                Assertions.assertEquals(body?.type, error.type)
+                Assertions.assertEquals(body?.message, error.message)
             }
     }
 
     @Test
     fun `given a authentication request with invalid email,should throw MethodArgumentNotValidException and return http status 400`() {
         val login = LoginV1Sampler.sampleInvalidEmail()
-        val error = ErrorSampler.sampleValidationError()
+        val error = ErrorSampler.sampleMethodArgumentNotValidError()
 
         webTestClient
             .post()
@@ -115,10 +118,11 @@ class AuthenticationTest : ApplicationIntegrationTest() {
             .exchange()
             .expectStatus()
             .isBadRequest
-            .expectBody(ErrorResponseV1::class.java)
+            .expectBody(InvalidFieldErrorV1::class.java)
             .consumeWith { response ->
                 val body = response.responseBody
-                Assertions.assertEquals(error.details, body?.details)
+
+                Assertions.assertEquals(body?.details, error.details)
             }
     }
 

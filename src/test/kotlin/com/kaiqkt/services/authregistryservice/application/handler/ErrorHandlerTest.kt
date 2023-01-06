@@ -6,6 +6,7 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsE
 import com.kaiqkt.services.authregistryservice.domain.exceptions.DomainException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefinePasswordException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.ErrorType
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
@@ -31,12 +32,13 @@ class ErrorHandlerTest {
     fun `given an DomainException, when handling, should return HTTP status 400`() {
         val errorHandler = ErrorHandler()
         val error = ErrorSampler.sample()
-        val exception = DomainException(error.details.toString())
+        val exception = DomainException(ErrorType.valueOf(error.type), error.message)
 
         val response = errorHandler.handleDomainException(exception, webRequest)
 
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
-        Assertions.assertEquals(error.details, response.body?.details)
+        Assertions.assertEquals(error.type, response.body?.type)
+        Assertions.assertEquals(error.message, response.body?.message)
     }
 
     @Test
@@ -48,7 +50,8 @@ class ErrorHandlerTest {
         val response = errorHandler.handleBadCredentialsException(exception)
 
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
-        Assertions.assertEquals(error.details, response.body?.details)
+        Assertions.assertEquals(error.type, response.body?.type)
+        Assertions.assertEquals(error.message, response.body?.message)
     }
 
     @Test
@@ -60,14 +63,15 @@ class ErrorHandlerTest {
         val response = errorHandler.handleUserNotFoundException(exception, webRequest)
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
-        Assertions.assertEquals(error.details, response.body?.details)
+        Assertions.assertEquals(error.type, response.body?.type)
+        Assertions.assertEquals(error.message, response.body?.message)
     }
 
     @Test
     fun `given an ValidationException when handling, should return HTTP status 400`() {
         val errorHandler = ErrorHandler()
         val error = ErrorSampler.sampleValidationError()
-        val exception = ValidationException(mapOf("email" to "must match \"\\S+@\\S+\\.\\S+\""))
+        val exception = ValidationException(mapOf("field1" to "message", "field2" to "message"))
 
         val response = errorHandler.handleValidationException(exception, webRequest)
 
@@ -76,41 +80,42 @@ class ErrorHandlerTest {
     }
 
     @Test
-    fun `given an SessionException when handling, should return HTTP status 401`() {
+    fun `given an BadRefreshTokenException when handling, should return HTTP status 401`() {
         val errorHandler = ErrorHandler()
-        val error = ErrorSampler.sampleSessionError()
-        val exception = BadRefreshTokenException("Session revoked")
+        val error = ErrorSampler.sampleRefreshTokenError()
+        val exception = BadRefreshTokenException()
 
         val response = errorHandler.handleBadRefreshTokenException(exception, webRequest)
 
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
-        Assertions.assertEquals(error.details, response.body?.details)
+        Assertions.assertEquals(error.type, response.body?.type)
+        Assertions.assertEquals(error.message, response.body?.message)
     }
 
     @Test
     fun `given an SessionNotFoundException when handling, should return HTTP status 401`() {
         val errorHandler = ErrorHandler()
-        val sessionId = ULID.random()
-        val userId = ULID.random()
-        val error = ErrorSampler.sampleSessionNotFoundError(sessionId, userId)
-        val exception = SessionNotFoundException(sessionId, userId)
+        val error = ErrorSampler.sampleSessionNotFoundError()
+        val exception = SessionNotFoundException()
 
         val response = errorHandler.handleSessionNotFoundException(exception, webRequest)
 
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
-        Assertions.assertEquals(error.details, response.body?.details)
+        Assertions.assertEquals(error.type, response.body?.type)
+        Assertions.assertEquals(error.message, response.body?.message)
     }
 
     @Test
     fun `given an ResetPasswordCodeNotFoundException when handling, should return HTTP status 401`() {
         val errorHandler = ErrorHandler()
-        val error = ErrorSampler.sampleResetPasswordCodeNotFoundException()
+        val error = ErrorSampler.sampleRedefinePasswordCodeNotFoundException()
         val exception = InvalidRedefinePasswordException()
 
         val response = errorHandler.handleInvalidRedefinePasswordException(exception, webRequest)
 
         Assertions.assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
-        Assertions.assertEquals(error.details, response.body?.details)
+        Assertions.assertEquals(error.type, response.body?.type)
+        Assertions.assertEquals(error.message, response.body?.message)
     }
 
     @Test
@@ -122,7 +127,8 @@ class ErrorHandlerTest {
         val response = errorHandler.handleAddressNotFoundException(exception, webRequest)
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
-        Assertions.assertEquals(error.details, response.body?.details)
+        Assertions.assertEquals(error.type, response.body?.type)
+        Assertions.assertEquals(error.message, response.body?.message)
     }
 
     @Test
@@ -136,9 +142,7 @@ class ErrorHandlerTest {
         headers.add("test", "test")
 
         val bindingResult: BindingResult = MapBindingResult(mapOf<String, String>(), "objectName")
-        bindingResult.addError(FieldError("objectName", "field1", "message"))
-        bindingResult.addError(FieldError("objectName", "field2", "message"))
-
+        bindingResult.addError(FieldError("objectName", "email",  "must match \"\\S+@\\S+\\.\\S+\""))
 
         val exception = MethodArgumentNotValidException(parameter, bindingResult)
 

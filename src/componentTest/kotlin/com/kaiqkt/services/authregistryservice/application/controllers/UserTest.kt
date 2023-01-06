@@ -19,7 +19,8 @@ import com.kaiqkt.services.authregistryservice.domain.entities.Genre
 import com.kaiqkt.services.authregistryservice.domain.entities.SessionSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.generated.application.dto.AuthenticationResponseV1
-import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorResponseV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.InvalidFieldErrorV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.UserResponseV1
 import com.kaiqkt.services.authregistryservice.resources.communication.helpers.CommunicationServiceMock
 import io.azam.ulidj.ULID
@@ -135,9 +136,7 @@ class UserTest : ApplicationIntegrationTest() {
     fun `giving a request to create a new user, when some field is invalid, should return http status 400`() {
 
         val request = UserV1Sampler.sampleWithInvalidEmail()
-        val expectedError = ErrorSampler.sampleValidationError()
-
-        CommunicationServiceMock.sendEmail.mockSendEmail()
+        val error = ErrorSampler.sampleMethodArgumentNotValidError()
 
         webTestClient
             .post()
@@ -149,10 +148,11 @@ class UserTest : ApplicationIntegrationTest() {
             .exchange()
             .expectStatus()
             .isBadRequest
-            .expectBody(ErrorResponseV1::class.java)
+            .expectBody(InvalidFieldErrorV1::class.java)
             .consumeWith { response ->
                 val body = response.responseBody
-                Assertions.assertEquals(expectedError.details, body?.details)
+
+                Assertions.assertEquals(error.details, body?.details)
             }
 
         Assertions.assertEquals(userRepository.findAll().size, 0)

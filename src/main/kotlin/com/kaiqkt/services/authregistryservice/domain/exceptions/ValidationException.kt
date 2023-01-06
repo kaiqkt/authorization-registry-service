@@ -1,3 +1,3 @@
 package com.kaiqkt.services.authregistryservice.domain.exceptions
 
-class ValidationException(val errorDetails: Map<String, String>) : DomainException("Invalid field value")
+class ValidationException(val errors: Map<String, String>) : DomainException(ErrorType.INVALID_FIELDS_ERROR, "Invalid field value")

@@ -8,7 +8,8 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshToken
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
-import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorResponseV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.InvalidFieldErrorV1
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -24,84 +25,84 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 class ErrorHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(DomainException::class)
-    fun handleDomainException(ex: DomainException, request: WebRequest): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.message)
+    fun handleDomainException(ex: DomainException, request: WebRequest): ResponseEntity<ErrorV1> {
+        val response = ErrorV1(ex.type.name, ex.message)
 
         logger.error("Error: ${getUri(request)}")
 
-        return ResponseEntity(responseBody, HttpStatus.BAD_REQUEST)
+        return ResponseEntity(response, HttpStatus.BAD_REQUEST)
     }
 
     @ExceptionHandler(BadCredentialsException::class)
-    fun handleBadCredentialsException(ex: BadCredentialsException): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.message)
+    fun handleBadCredentialsException(ex: BadCredentialsException): ResponseEntity<ErrorV1> {
+        val response = ErrorV1(ex.type.name, ex.message)
 
         logger.error("Bad credentials exception error: ${ex.message}")
 
-        return ResponseEntity(responseBody, HttpStatus.UNAUTHORIZED)
+        return ResponseEntity(response, HttpStatus.UNAUTHORIZED)
     }
 
     @ExceptionHandler(UserNotFoundException::class)
-    fun handleUserNotFoundException(ex: UserNotFoundException, request: WebRequest): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.message)
+    fun handleUserNotFoundException(ex: UserNotFoundException, request: WebRequest): ResponseEntity<ErrorV1> {
+        val response = ErrorV1(ex.type.name, ex.message)
 
         logger.error("User not found exception error: ${getUri(request)}")
 
-        return ResponseEntity(responseBody, HttpStatus.NOT_FOUND)
+        return ResponseEntity(response, HttpStatus.NOT_FOUND)
     }
 
     @ExceptionHandler(ValidationException::class)
-    fun handleValidationException(ex: ValidationException, request: WebRequest): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.errorDetails)
+    fun handleValidationException(ex: ValidationException, request: WebRequest): ResponseEntity<InvalidFieldErrorV1> {
+        val response = InvalidFieldErrorV1(ex.errors)
 
         logger.error("Validation exception error: ${getUri(request)}")
 
-        return ResponseEntity(responseBody, HttpStatus.BAD_REQUEST)
+        return ResponseEntity(response, HttpStatus.BAD_REQUEST)
     }
 
     @ExceptionHandler(BadRefreshTokenException::class)
-    fun handleBadRefreshTokenException(ex: BadRefreshTokenException, request: WebRequest): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.message)
+    fun handleBadRefreshTokenException(ex: BadRefreshTokenException, request: WebRequest): ResponseEntity<ErrorV1> {
+        val response = ErrorV1(ex.type.name, ex.message)
 
         logger.error("Bad refresh token error: ${getUri(request)}")
 
-        return ResponseEntity(responseBody, HttpStatus.UNAUTHORIZED)
+        return ResponseEntity(response, HttpStatus.UNAUTHORIZED)
     }
 
     @ExceptionHandler(SessionNotFoundException::class)
     fun handleSessionNotFoundException(
         ex: SessionNotFoundException,
         request: WebRequest
-    ): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.message)
+    ): ResponseEntity<ErrorV1> {
+        val response = ErrorV1(ex.type.name, ex.message)
 
         logger.error("Session not found exception error: ${getUri(request)}")
 
-        return ResponseEntity(responseBody, HttpStatus.UNAUTHORIZED)
+        return ResponseEntity(response, HttpStatus.UNAUTHORIZED)
     }
 
     @ExceptionHandler(InvalidRedefinePasswordException::class)
     fun handleInvalidRedefinePasswordException(
         ex: InvalidRedefinePasswordException,
         request: WebRequest
-    ): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.message)
+    ): ResponseEntity<ErrorV1> {
+        val response = ErrorV1(ex.type.name, ex.message)
 
         logger.error("Redefine password error: ${getUri(request)}")
 
-        return ResponseEntity(responseBody, HttpStatus.UNAUTHORIZED)
+        return ResponseEntity(response, HttpStatus.UNAUTHORIZED)
     }
 
     @ExceptionHandler(AddressNotFoundException::class)
     fun handleAddressNotFoundException(
         ex: AddressNotFoundException,
         request: WebRequest
-    ): ResponseEntity<ErrorResponseV1> {
-        val responseBody = ErrorResponseV1(ex.message)
+    ): ResponseEntity<ErrorV1> {
+        val response = ErrorV1(ex.type.name, ex.message)
 
         logger.error("Address not found exception error: ${getUri(request)}")
 
-        return ResponseEntity(responseBody, HttpStatus.NOT_FOUND)
+        return ResponseEntity(response, HttpStatus.NOT_FOUND)
     }
 
     public override fun handleMethodArgumentNotValid(
@@ -111,7 +112,8 @@ class ErrorHandler : ResponseEntityExceptionHandler() {
         request: WebRequest
     ): ResponseEntity<Any> {
         val errors: MutableMap<String, Any?> = HashMap()
-        val responseBody = ErrorResponseV1(errors)
+        val responseBody = InvalidFieldErrorV1(errors)
+
         ex.bindingResult.allErrors.forEach { error: ObjectError ->
             val fieldName = (error as FieldError).field
             val errorMessage = error.defaultMessage

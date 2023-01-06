@@ -43,7 +43,7 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
     get:
       tags:
         - user
@@ -63,7 +63,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
+        401:
+          description: Access token expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
   /user/{user_id}:
     get:
       tags:
@@ -91,7 +97,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
+        401:
+          description: Service token is invalid
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
   /user/address/{address_id}:
     put:
       tags:
@@ -121,7 +133,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
+        401:
+          description: Access token expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
     delete:
       tags:
         - user
@@ -144,7 +162,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
+        401:
+          description: Access token expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
   /user/address:
     post:
       tags:
@@ -167,7 +191,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
+        401:
+          description: Access token expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
   /user/update-password:
     put:
       tags:
@@ -197,17 +227,17 @@ paths:
         204:
           description: Password updated successfully
         401:
-          description: Actual password not match
+          description: Actual password is incorrect
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
         404:
           description: User not found
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
   /user/redefine-password:
     post:
       tags:
@@ -228,7 +258,7 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
     put:
       tags:
         - user
@@ -244,17 +274,17 @@ paths:
         204:
           description: Password updated successfully
         401:
-          description: Actual password not match
+          description: Actual password is invalid
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
         404:
           description: User not found
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
   /user/redefine-password/{code}:
     get:
       tags:
@@ -276,13 +306,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
         404:
           description: User not found
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
   /user/phone:
     put:
       tags:
@@ -301,17 +331,17 @@ paths:
         204:
           description: User phone updated successfully
         401:
-          description: Actual password not match
+          description: Access token is expired
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
         404:
           description: User not found
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
   /auth/login:
     post:
       tags:
@@ -347,13 +377,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
         401:
-          description: Password not match
+          description: Password is invalid
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
   /auth/logout:
     delete:
       tags:
@@ -376,6 +406,12 @@ paths:
       responses:
         204:
           description: User logged out successfully
+        401:
+          description: Access token is expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
   /auth/logout/{session_id}:
     delete:
       tags:
@@ -394,6 +430,12 @@ paths:
       responses:
         204:
           description: User logged out successfully
+        401:
+          description: Access token is expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
   /auth/refresh:
     post:
       tags:
@@ -425,7 +467,7 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
   /session:
     get:
       tags:
@@ -443,6 +485,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SessionResponseV1'
+        401:
+          description: Access token is expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
 
   /session/validate:
     get:
@@ -460,7 +508,13 @@ paths:
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
-                $ref: '#/components/schemas/ErrorResponseV1'
+                $ref: '#/components/schemas/ErrorV1'
+        401:
+          description: Access token is expired
+          content:
+            application/vnd.kaiqkt_error_v1.json:
+              schema:
+                $ref: '#/components/schemas/ErrorV1'
 components:
   schemas:
     LoginV1:
@@ -662,11 +716,25 @@ components:
         - session_id
         - this_device
 
-    ErrorResponseV1:
+    InvalidFieldErrorV1:
       type: object
       properties:
         details:
           type: object
+      required:
+        - details
+
+    ErrorV1:
+      type: object
+      properties:
+        type:
+          type: string
+        message:
+          type: string
+      required:
+        - type
+        - message
+
 
   securitySchemes:
     CustomerAuth:
