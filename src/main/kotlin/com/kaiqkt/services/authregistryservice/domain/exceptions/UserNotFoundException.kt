@@ -1,3 +1,3 @@
 package com.kaiqkt.services.authregistryservice.domain.exceptions
 
-class UserNotFoundException : DomainException("User not found")
+class UserNotFoundException : DomainException(ErrorType.USER_NOT_FOUND, "User not found")

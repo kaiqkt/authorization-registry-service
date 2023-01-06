@@ -219,7 +219,7 @@ class AuthenticationServiceTest {
         val refreshToken = "031231amdsfakKKAy"
         val accessToken = JWTUtils.generateToken(user.id, customAccessTokenSecret, listOf(ROLE_USER), session.id, customAccessTokenExpiration.toLong())
 
-        every { sessionService.findByIdAndUserId(any(), any()) } throws SessionNotFoundException(session.id, user.id)
+        every { sessionService.findByIdAndUserId(any(), any()) } throws SessionNotFoundException()
 
         assertThrows<SessionNotFoundException> {
             authenticationService.refresh(accessToken, refreshToken)

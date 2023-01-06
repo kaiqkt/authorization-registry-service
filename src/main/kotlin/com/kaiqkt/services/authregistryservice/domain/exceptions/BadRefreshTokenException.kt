@@ -1,3 +1,4 @@
 package com.kaiqkt.services.authregistryservice.domain.exceptions
 
-class BadRefreshTokenException(override val message: String) : DomainException(message)
+class BadRefreshTokenException :
+    DomainException(ErrorType.REFRESH_TOKEN_INCORRECT, "Incorrect refresh token")

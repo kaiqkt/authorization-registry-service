@@ -47,7 +47,7 @@ class SessionService(
     }
 
     fun findByIdAndUserId(sessionId: String, userId: String): Session =
-        sessionRepository.findByIdAndUserId(sessionId, userId) ?: throw SessionNotFoundException(sessionId, userId)
+        sessionRepository.findByIdAndUserId(sessionId, userId) ?: throw SessionNotFoundException()
 
     fun findAllByUserId(userId: String): List<Session> = sessionRepository.findAllUserId(userId)
 

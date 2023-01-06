@@ -1,41 +1,50 @@
 package com.kaiqkt.services.authregistryservice.application.dto
 
-import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorResponseV1
+import com.kaiqkt.services.authregistryservice.domain.exceptions.ErrorType
+import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorV1
+import com.kaiqkt.services.authregistryservice.generated.application.dto.InvalidFieldErrorV1
 
 object ErrorSampler {
-    fun sample() = ErrorResponseV1(
-        details = "test"
+    fun sample() = ErrorV1(
+        type = ErrorType.USER_NOT_FOUND.name,
+        message = "test"
     )
 
-    fun sampleBadCredentialsError() = ErrorResponseV1(
-        details = "Password does not match"
+    fun sampleBadCredentialsError() = ErrorV1(
+        type = ErrorType.INCORRECT_PASSWORD.name,
+        message = "Incorrect password"
     )
 
-    fun sampleUserNotFoundError() = ErrorResponseV1(
-        details = "User not found"
+    fun sampleUserNotFoundError() = ErrorV1(
+        type = ErrorType.USER_NOT_FOUND.name,
+        message = "User not found"
     )
 
-    fun sampleValidationError() = ErrorResponseV1(
-        details = mapOf("email" to "must match \"\\S+@\\S+\\.\\S+\"")
-    )
-
-    fun sampleSessionError() = ErrorResponseV1(
-        details = "Session revoked"
-    )
-
-    fun sampleSessionNotFoundError(sessionId: String, userId: String) = ErrorResponseV1(
-        details = "Session $sessionId for user $userId not found"
-    )
-
-    fun sampleResetPasswordCodeNotFoundException() = ErrorResponseV1(
-        details = "Reset code not exist or is expired"
-    )
-
-    fun sampleAddressNotFoundException() = ErrorResponseV1(
-        details = "Address not found"
-    )
-
-    fun sampleMethodArgumentNotValidError() = ErrorResponseV1(
+    fun sampleValidationError() = InvalidFieldErrorV1(
         details = mapOf("field1" to "message", "field2" to "message")
+    )
+
+    fun sampleRefreshTokenError() = ErrorV1(
+        type = ErrorType.REFRESH_TOKEN_INCORRECT.name,
+        message = "Incorrect refresh token"
+    )
+
+    fun sampleSessionNotFoundError() = ErrorV1(
+        type = ErrorType.SESSION_NOT_FOUND.name,
+        message = "Session not found"
+    )
+
+    fun sampleRedefinePasswordCodeNotFoundException() = ErrorV1(
+        type = ErrorType.INVALID_REDEFINE_PASSWORD_CODE.name,
+        message =  "Reset code not exist or is expired"
+    )
+
+    fun sampleAddressNotFoundException() = ErrorV1(
+        type = ErrorType.ADDRESS_NOT_FOUND.name,
+        message = "Address not found"
+    )
+
+    fun sampleMethodArgumentNotValidError() = InvalidFieldErrorV1(
+        details = mapOf("email" to "must match \"\\S+@\\S+\\.\\S+\"")
     )
 }

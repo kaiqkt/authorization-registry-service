@@ -72,7 +72,7 @@ class AuthenticationService(
         if (session.refreshToken == refreshToken) {
             return authenticate(user = user, sessionId = sessionId)
         }
-        throw BadRefreshTokenException("Refresh token is invalid")
+        throw BadRefreshTokenException()
     }
 
     fun logout(userId: String, sessionId: String) {

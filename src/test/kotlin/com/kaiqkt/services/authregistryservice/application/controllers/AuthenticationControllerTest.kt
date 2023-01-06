@@ -239,7 +239,7 @@ class AuthenticationControllerTest {
 
         SecurityContextHolder.getContext().authentication = CustomAuthenticationSampler.sample()
 
-        every { authenticationService.refresh(any(), any()) } throws BadRefreshTokenException("Refresh token is invalid")
+        every { authenticationService.refresh(any(), any()) } throws BadRefreshTokenException()
 
         assertThrows<BadRefreshTokenException> {
             controller.refresh(accessToken, refreshToken)
