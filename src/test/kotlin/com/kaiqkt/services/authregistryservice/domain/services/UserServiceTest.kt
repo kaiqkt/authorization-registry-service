@@ -1,7 +1,6 @@
 package com.kaiqkt.services.authregistryservice.domain.services
 
 import com.kaiqkt.commons.crypto.random.generateRandomString
-import com.kaiqkt.services.authregistryservice.application.dto.AddressV1Sampler
 import com.kaiqkt.services.authregistryservice.domain.entities.AddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.AuthenticationSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.DeviceSampler
@@ -15,6 +14,7 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundExc
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepository
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepositoryCustom
+import com.kaiqkt.services.authregistryservice.domain.validation.ValidationType
 import com.kaiqkt.services.authregistryservice.resources.exceptions.PersistenceException
 import io.azam.ulidj.ULID
 import io.mockk.every
@@ -29,7 +29,6 @@ import java.util.*
 class UserServiceTest {
     private val validationService: ValidationService = mockk(relaxed = true)
     private val userRepository: UserRepository = mockk(relaxed = true)
-    private val userRepositoryCustom: UserRepositoryCustom = mockk(relaxed = true)
     private val emailService: EmailService = mockk(relaxed = true)
     private val authenticationService: AuthenticationService = mockk(relaxed = true)
     private val sessionService: SessionService = mockk(relaxed = true)
@@ -38,7 +37,6 @@ class UserServiceTest {
         UserService(
             validationService,
             userRepository,
-            userRepositoryCustom,
             emailService,
             authenticationService,
             sessionService,
@@ -73,7 +71,13 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val device = DeviceSampler.sample()
 
-        every { validationService.validate(any()) } throws ValidationException(mapOf("email" to "Email already in use"))
+        every { validationService.validate(any()) } throws ValidationException(
+            mutableMapOf(
+                "email" to listOf(
+                    ValidationType.EMAIL_IN_USE
+                )
+            )
+        )
 
         assertThrows<ValidationException> {
             userService.create(device, user)
@@ -118,11 +122,11 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val address = user.addresses.first()
 
-        every { userRepositoryCustom.createAddress(any(), any()) } just runs
+        every { userRepository.createAddress(any(), any()) } just runs
 
         userService.createAddress(user.id, address)
 
-        every { userRepositoryCustom.createAddress(user.id, address) } just runs
+        every { userRepository.createAddress(user.id, address) } just runs
     }
 
     @Test
@@ -130,11 +134,11 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val addressId = user.addresses.first().id
 
-        every { userRepositoryCustom.deleteAddress(any(), any()) } just runs
+        every { userRepository.deleteAddress(any(), any()) } just runs
 
         userService.deleteAddress(user.id, addressId)
 
-        every { userRepositoryCustom.deleteAddress(user.id, addressId) } just runs
+        every { userRepository.deleteAddress(user.id, addressId) } just runs
     }
 
     @Test
@@ -142,11 +146,11 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val address = AddressSampler.sample()
 
-        every { userRepositoryCustom.updateAddress(any(), any()) } just runs
+        every { userRepository.updateAddress(any(), any()) } just runs
 
         userService.updateAddress(user.id, address)
 
-        every { userRepositoryCustom.updateAddress(user.id, address) } just runs
+        every { userRepository.updateAddress(user.id, address) } just runs
     }
 
     @Test
@@ -154,11 +158,11 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val phone = PhoneSampler.sample()
 
-        every { userRepositoryCustom.updatePhone(any(), any()) } just runs
+        every { userRepository.updatePhone(any(), any()) } just runs
 
         userService.updatePhone(user.id, phone)
 
-        verify { userRepositoryCustom.updatePhone(user.id, phone) }
+        verify { userRepository.updatePhone(user.id, phone) }
     }
 
     @Test
@@ -166,11 +170,11 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val address = AddressSampler.sample()
 
-        every { userRepositoryCustom.updateAddress(any(), any()) } just runs
+        every { userRepository.updateAddress(any(), any()) } just runs
 
         userService.updateAddress(user.id, address)
 
-        verify { userRepositoryCustom.updateAddress(user.id, address) }
+        verify { userRepository.updateAddress(user.id, address) }
     }
 
     @Test
@@ -178,13 +182,13 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val address = AddressSampler.sample()
 
-        every { userRepositoryCustom.updateAddress(any(), any()) } throws Exception()
+        every { userRepository.updateAddress(any(), any()) } throws Exception()
 
         assertThrows<AddressNotFoundException> {
             userService.updateAddress(user.id, address)
         }
 
-        verify { userRepositoryCustom.updateAddress(user.id, address) }
+        verify { userRepository.updateAddress(user.id, address) }
     }
 
 
@@ -234,13 +238,13 @@ class UserServiceTest {
 
         every { userRepository.findById(any()) } returns Optional.of(user)
         every { sessionService.revokeAllExceptCurrent(any(), any()) } just runs
-        every { userRepositoryCustom.updatePassword(any(), any()) } just runs
+        every { userRepository.updatePassword(any(), any()) } just runs
 
         userService.updatePassword("1234657", newPassword, user.id, session.id, device)
 
         verify { userRepository.findById(user.id) }
         verify { sessionService.revokeAllExceptCurrent(session.id, user.id) }
-        verify { userRepositoryCustom.updatePassword(user.id, any()) }
+        verify { userRepository.updatePassword(user.id, any()) }
     }
 
     @Test

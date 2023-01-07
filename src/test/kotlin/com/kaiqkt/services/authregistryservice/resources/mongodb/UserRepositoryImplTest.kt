@@ -1,6 +1,5 @@
 package com.kaiqkt.services.authregistryservice.resources.mongodb
 
-import com.kaiqkt.services.authregistryservice.domain.entities.Address
 import com.kaiqkt.services.authregistryservice.domain.entities.AddressSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.PasswordSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.PhoneSampler
@@ -16,9 +15,9 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 
-class UserRepositoryCustomImplTest {
+class UserRepositoryImplTest {
     private val mongoTemplate: MongoTemplate = mockk(relaxed = true)
-    private val repository = UserRepositoryCustomImpl(mongoTemplate)
+    private val repository = UserRepositoryImpl(mongoTemplate)
 
     @Test
     fun `given address to create, should create successfully`() {

@@ -10,7 +10,6 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.AddressNotFound
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepository
-import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepositoryCustom
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,7 +19,6 @@ import kotlin.jvm.optionals.getOrNull
 class UserService(
     private val validationService: ValidationService,
     private val userRepository: UserRepository,
-    private val userRepositoryCustom: UserRepositoryCustom,
     private val emailService: EmailService,
     private val authenticationService: AuthenticationService,
     private val sessionService: SessionService,
@@ -40,23 +38,23 @@ class UserService(
     }
 
     fun createAddress(userId: String, address: Address) {
-        userRepositoryCustom.createAddress(userId, address)
+        userRepository.createAddress(userId, address)
         logger.info("Address ${address.id} for user $userId created successfully")
     }
 
     fun deleteAddress(userId: String, addressId: String) {
-        userRepositoryCustom.deleteAddress(userId, addressId)
+        userRepository.deleteAddress(userId, addressId)
         logger.info("Delete address $addressId for user $userId")
     }
 
     fun updateAddress(userId: String, address: Address) {
-        runCatching { userRepositoryCustom.updateAddress(userId, address) }
+        runCatching { userRepository.updateAddress(userId, address) }
             .onFailure { throw AddressNotFoundException() }
             .also { logger.info("Address ${address.id} of user $userId updated successfully") }
     }
 
     fun updatePhone(userId: String, phone: Phone) {
-        userRepositoryCustom.updatePhone(userId, phone)
+        userRepository.updatePhone(userId, phone)
         logger.info("Phone of user $userId updated successfully")
     }
 
@@ -80,7 +78,7 @@ class UserService(
 
         sessionService.revokeAllExceptCurrent(sessionId, userId)
 
-        userRepositoryCustom.updatePassword(
+        userRepository.updatePassword(
             userId,
             EncryptUtils.encryptPassword(newPassword)
         )
@@ -94,7 +92,7 @@ class UserService(
         val userId = redefinePasswordService.isValidCode(code)
         val user = findById(userId)
 
-        userRepositoryCustom.updatePassword(
+        userRepository.updatePassword(
             userId,
             EncryptUtils.encryptPassword(newPassword)
         )

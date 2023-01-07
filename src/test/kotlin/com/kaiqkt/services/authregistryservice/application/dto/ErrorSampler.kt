@@ -1,6 +1,7 @@
 package com.kaiqkt.services.authregistryservice.application.dto
 
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ErrorType
+import com.kaiqkt.services.authregistryservice.domain.validation.ValidationType
 import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.InvalidFieldErrorV1
 
@@ -21,7 +22,7 @@ object ErrorSampler {
     )
 
     fun sampleValidationError() = InvalidFieldErrorV1(
-        details = mapOf("field1" to "message", "field2" to "message")
+        details = mutableMapOf("email" to listOf(ValidationType.EMAIL_IN_USE))
     )
 
     fun sampleRefreshTokenError() = ErrorV1(
