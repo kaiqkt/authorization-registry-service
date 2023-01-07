@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 @Component
-class UserRepositoryCustomImpl(private val mongoTemplate: MongoTemplate) : UserRepositoryCustom {
+class UserRepositoryImpl(private val mongoTemplate: MongoTemplate) : UserRepositoryCustom {
     override fun createAddress(userId: String, address: Address) {
         val query = Query().addCriteria(Criteria.where("id").`is`(userId))
         val update = Update().push("addresses", address)

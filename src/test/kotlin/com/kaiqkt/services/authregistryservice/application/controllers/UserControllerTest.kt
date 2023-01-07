@@ -20,6 +20,7 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundExc
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
 import com.kaiqkt.services.authregistryservice.domain.services.RedefinePasswordService
 import com.kaiqkt.services.authregistryservice.domain.services.UserService
+import com.kaiqkt.services.authregistryservice.domain.validation.ValidationType
 import io.azam.ulidj.ULID
 import io.mockk.every
 import io.mockk.just
@@ -63,7 +64,7 @@ class UserControllerTest {
                 any(),
                 any()
             )
-        } throws ValidationException(mapOf("email" to "Email already in use"))
+        } throws ValidationException(mutableMapOf("email" to ValidationType.EMAIL_IN_USE))
 
         assertThrows<ValidationException> {
             controller.create(USER_AGENT, APP_VERSION, request)

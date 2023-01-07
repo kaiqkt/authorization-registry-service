@@ -8,8 +8,8 @@ object PhoneSampler {
     )
 
     fun sampleWithInvalidNumber() = Phone(
-        countryCode = "+1",
-        areaCode = "(11)",
-        number = "91456-2121"
+        countryCode = "1",
+        areaCode = "11",
+        number = "914562121"
     )
 }

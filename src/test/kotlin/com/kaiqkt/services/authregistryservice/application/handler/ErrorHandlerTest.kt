@@ -3,14 +3,14 @@ package com.kaiqkt.services.authregistryservice.application.handler
 import com.kaiqkt.services.authregistryservice.application.dto.ErrorSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.AddressNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.DomainException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefinePasswordException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.DomainException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ErrorType
+import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefinePasswordException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
-import io.azam.ulidj.ULID
+import com.kaiqkt.services.authregistryservice.domain.validation.ValidationType
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -71,7 +71,7 @@ class ErrorHandlerTest {
     fun `given an ValidationException when handling, should return HTTP status 400`() {
         val errorHandler = ErrorHandler()
         val error = ErrorSampler.sampleValidationError()
-        val exception = ValidationException(mapOf("field1" to "message", "field2" to "message"))
+        val exception = ValidationException(mutableMapOf("email" to ValidationType.EMAIL_IN_USE))
 
         val response = errorHandler.handleValidationException(exception, webRequest)
 
