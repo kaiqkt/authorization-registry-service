@@ -46,7 +46,7 @@ class UserValidatorTest {
     @Test
     fun `given a user,when phone is already used, should return validation error`() {
         val user = UserSampler.sample()
-        val expectedError = mutableMapOf("phone" to listOf(ValidationType.PHONE_IN_USE))
+        val expectedError = mutableMapOf("phone" to ValidationType.PHONE_IN_USE)
 
 
         every { userRepository.existsByEmail(any()) } returns false
@@ -65,7 +65,7 @@ class UserValidatorTest {
     @Test
     fun `given a user,when phone invalid, should return validation error`() {
         val phone = PhoneSampler.sampleWithInvalidNumber()
-        val expectedError = mutableMapOf("phone" to listOf(ValidationType.INVALID_PHONE))
+        val expectedError = mutableMapOf("phone" to ValidationType.INVALID_PHONE)
 
         every { userRepository.existsByPhone(any()) } returns false
 

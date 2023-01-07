@@ -13,7 +13,6 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefine
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepository
-import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepositoryCustom
 import com.kaiqkt.services.authregistryservice.domain.validation.ValidationType
 import com.kaiqkt.services.authregistryservice.resources.exceptions.PersistenceException
 import io.azam.ulidj.ULID
@@ -71,13 +70,7 @@ class UserServiceTest {
         val user = UserSampler.sample()
         val device = DeviceSampler.sample()
 
-        every { validationService.validate(any()) } throws ValidationException(
-            mutableMapOf(
-                "email" to listOf(
-                    ValidationType.EMAIL_IN_USE
-                )
-            )
-        )
+        every { validationService.validate(any()) } throws ValidationException(mutableMapOf("email" to ValidationType.EMAIL_IN_USE))
 
         assertThrows<ValidationException> {
             userService.create(device, user)

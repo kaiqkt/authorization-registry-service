@@ -35,7 +35,7 @@ class ValidationServiceTest {
 
     @Test
     fun `given a object, should throw validation exception when validation return error list`() {
-        every { userValidator.validate(any<User>()) } returns mutableMapOf("email" to listOf(ValidationType.EMAIL_IN_USE))
+        every { userValidator.validate(any<User>()) } returns mutableMapOf("email" to ValidationType.EMAIL_IN_USE)
 
         assertThrows<ValidationException> {
             validation.validate(UserSampler.sample())

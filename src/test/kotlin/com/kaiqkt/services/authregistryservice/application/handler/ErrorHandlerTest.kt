@@ -3,10 +3,10 @@ package com.kaiqkt.services.authregistryservice.application.handler
 import com.kaiqkt.services.authregistryservice.application.dto.ErrorSampler
 import com.kaiqkt.services.authregistryservice.domain.exceptions.AddressNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.DomainException
-import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefinePasswordException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
+import com.kaiqkt.services.authregistryservice.domain.exceptions.DomainException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ErrorType
+import com.kaiqkt.services.authregistryservice.domain.exceptions.InvalidRedefinePasswordException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.SessionNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.ValidationException
@@ -71,7 +71,7 @@ class ErrorHandlerTest {
     fun `given an ValidationException when handling, should return HTTP status 400`() {
         val errorHandler = ErrorHandler()
         val error = ErrorSampler.sampleValidationError()
-        val exception = ValidationException(mutableMapOf("email" to listOf(ValidationType.EMAIL_IN_USE)))
+        val exception = ValidationException(mutableMapOf("email" to ValidationType.EMAIL_IN_USE))
 
         val response = errorHandler.handleValidationException(exception, webRequest)
 

@@ -14,11 +14,11 @@ class UserValidator(
 
     fun validate(
         user: User
-    ): MutableMap<String, List<ValidationType>> {
-        val errors = mutableMapOf<String, List<ValidationType>>()
+    ): MutableMap<String, ValidationType> {
+        val errors = mutableMapOf<String, ValidationType>()
 
         if (userRepository.existsByEmail(user.email)) {
-            errors["email"] = listOf(ValidationType.EMAIL_IN_USE)
+            errors["email"] = ValidationType.EMAIL_IN_USE
         }
 
         return validate(user.phone, errors)
@@ -26,14 +26,14 @@ class UserValidator(
 
     fun validate(
         phone: Phone,
-        errors: MutableMap<String, List<ValidationType>> = mutableMapOf()
-    ): MutableMap<String, List<ValidationType>> {
+        errors: MutableMap<String, ValidationType> = mutableMapOf()
+    ): MutableMap<String, ValidationType> {
 
         if (!isValidPhone(phone)) {
-            errors["phone"] = listOf(ValidationType.INVALID_PHONE)
+            errors["phone"] = ValidationType.INVALID_PHONE
         }
         if (userRepository.existsByPhone(phone)) {
-            errors["phone"] = listOf(ValidationType.PHONE_IN_USE)
+            errors["phone"] = ValidationType.PHONE_IN_USE
         }
 
         return errors

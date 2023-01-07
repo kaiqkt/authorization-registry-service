@@ -22,7 +22,7 @@ object ErrorSampler {
     )
 
     fun sampleValidationError() = InvalidFieldErrorV1(
-        details = mutableMapOf("email" to listOf(ValidationType.EMAIL_IN_USE))
+        details = mutableMapOf("email" to ValidationType.EMAIL_IN_USE)
     )
 
     fun sampleRefreshTokenError() = ErrorV1(

@@ -64,7 +64,7 @@ class UserControllerTest {
                 any(),
                 any()
             )
-        } throws ValidationException(mutableMapOf("email" to listOf(ValidationType.EMAIL_IN_USE)))
+        } throws ValidationException(mutableMapOf("email" to ValidationType.EMAIL_IN_USE))
 
         assertThrows<ValidationException> {
             controller.create(USER_AGENT, APP_VERSION, request)
