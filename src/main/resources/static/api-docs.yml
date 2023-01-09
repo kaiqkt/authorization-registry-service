@@ -503,14 +503,8 @@ paths:
       responses:
         204:
           description: Session exist
-        404:
-          description: Session not found
-          content:
-            application/vnd.kaiqkt_error_v1.json:
-              schema:
-                $ref: '#/components/schemas/ErrorV1'
         401:
-          description: Access token is expired
+          description: Access token is expired or session not exist
           content:
             application/vnd.kaiqkt_error_v1.json:
               schema:
