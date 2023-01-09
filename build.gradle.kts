@@ -80,9 +80,10 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     //commons
-    implementation("com.kaiqkt.commons:commons-security:1.0.6")
+    implementation("com.kaiqkt.commons:commons-security:1.0.7")
     implementation("com.kaiqkt.commons:commons-health:1.0.0")
-    implementation("com.kaiqkt.commons:commons-crypto:1.0.0")
+    implementation("com.kaiqkt.commons:commons-crypto:1.0.1")
+    implementation("io.jsonwebtoken:jjwt:0.9.1")
 
     //swagger
     implementation("org.springdoc:springdoc-openapi-ui:1.6.14")

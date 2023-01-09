@@ -193,6 +193,24 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    fun `given a authentication to refresh, when the access token is expired, should return authentication`() {
+        val user = UserSampler.sample()
+        val session = SessionSampler.sample()
+        val refreshToken = "031231amdsfakKKAy"
+        val accessToken = JWTUtils.generateToken(user.id, customAccessTokenSecret, listOf(ROLE_USER), session.id, -customAccessTokenExpiration.toLong())
+
+        every { userRepository.findById(any()) } returns Optional.of(user)
+        every { sessionService.findByIdAndUserId(any(), any()) } returns session
+        every { sessionService.update(any(), any(), any()) } returns session
+
+        authenticationService.refresh(accessToken, refreshToken)
+
+        verify { sessionService.findByIdAndUserId(session.id, user.id) }
+        verify { userRepository.findById(user.id) }
+        verify { sessionService.update(session.id, user.id, any()) }
+    }
+
+    @Test
     fun `given a authentication to refresh, when not found the user, should throw UserNotFoundException`() {
         val user = UserSampler.sample()
         val session = SessionSampler.sample()
