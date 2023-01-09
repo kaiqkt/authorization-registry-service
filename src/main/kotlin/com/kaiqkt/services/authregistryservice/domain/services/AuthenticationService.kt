@@ -2,6 +2,7 @@ package com.kaiqkt.services.authregistryservice.domain.services
 
 import com.kaiqkt.commons.crypto.encrypt.EncryptUtils
 import com.kaiqkt.commons.crypto.jwt.JWTUtils
+import com.kaiqkt.commons.crypto.jwt.TokenDecrypted
 import com.kaiqkt.commons.crypto.random.generateRandomString
 import com.kaiqkt.commons.security.auth.ROLE_USER
 import com.kaiqkt.services.authregistryservice.domain.entities.Authentication
@@ -11,6 +12,7 @@ import com.kaiqkt.services.authregistryservice.domain.exceptions.BadCredentialsE
 import com.kaiqkt.services.authregistryservice.domain.exceptions.BadRefreshTokenException
 import com.kaiqkt.services.authregistryservice.domain.exceptions.UserNotFoundException
 import com.kaiqkt.services.authregistryservice.domain.repositories.UserRepository
+import io.jsonwebtoken.ExpiredJwtException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -60,7 +62,11 @@ class AuthenticationService(
 
     @OptIn(ExperimentalStdlibApi::class)
     fun refresh(accessToken: String, refreshToken: String): Authentication {
-        val claims = JWTUtils.getClaims(accessToken, secret)
+        val claims = try {
+            JWTUtils.getClaims(accessToken, secret)
+        } catch (ex: ExpiredJwtException) {
+            TokenDecrypted(ex.claims)
+        }
         val userId = claims.id
         val sessionId = claims.sessionId
 
