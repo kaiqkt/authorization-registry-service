@@ -14,7 +14,7 @@ customer-auth-signing-secret: world
 
 ignore-post-paths: /user, /user/redefine-password, /auth/login, /auth/refresh
 ignore-put-paths: /user/redefine-password
-ignore-get-paths: /user/redefine-password/**
+ignore-get-paths: /user/redefine-password/*
 
 session-expiration: 2
 redefine-password-code-expiration: 5

@@ -19,7 +19,6 @@ import com.kaiqkt.services.authregistryservice.domain.entities.Genre
 import com.kaiqkt.services.authregistryservice.domain.entities.SessionSampler
 import com.kaiqkt.services.authregistryservice.domain.entities.UserSampler
 import com.kaiqkt.services.authregistryservice.generated.application.dto.AuthenticationResponseV1
-import com.kaiqkt.services.authregistryservice.generated.application.dto.ErrorV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.InvalidFieldErrorV1
 import com.kaiqkt.services.authregistryservice.generated.application.dto.UserResponseV1
 import com.kaiqkt.services.authregistryservice.resources.communication.helpers.CommunicationServiceMock
@@ -336,7 +335,7 @@ class UserTest : ApplicationIntegrationTest() {
 
         webTestClient
             .put()
-            .uri("/user/redefine-password/code")
+            .uri("/user/redefine-password")
             .contentType(MediaType.parseMediaType("application/vnd.kaiqkt_user_redefine_password_v1+json"))
             .bodyValue(request)
             .exchange()
